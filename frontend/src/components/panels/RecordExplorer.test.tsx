@@ -92,6 +92,100 @@ it("uses identical filters for record search and CSV export", async () => {
   expect(new URL(link).searchParams.get("search")).toBe("bob@example.com");
 });
 
+it("resets all filters while preserving correction drafts and validation", async () => {
+  const fetch = vi.fn().mockImplementation(async (url: string) => ({
+    ok: true,
+    json: async () =>
+      url.endsWith("/validate")
+        ? {
+            valid: true,
+            rows: [{ row_number: 3, issues: [] }],
+            message: "Field checks only",
+          }
+        : {
+            records: [record],
+            total: 50,
+            page: Number(new URL(url).searchParams.get("page")),
+            page_size: 25,
+            fields: ["email"],
+          },
+  }));
+  vi.stubGlobal("fetch", fetch);
+  render(<RecordExplorer job={job} category="Email" />);
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Correct record 3" }),
+  );
+  fireEvent.change(screen.getByLabelText("Record 3 email"), {
+    target: { value: "fixed@example.com" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Validate corrections" }));
+  await screen.findByText("Field validation passed.");
+
+  fireEvent.change(screen.getByLabelText("Search all records"), {
+    target: { value: "bad" },
+  });
+  fireEvent.change(screen.getByLabelText("Sort by"), {
+    target: { value: "email" },
+  });
+  fireEvent.change(screen.getByLabelText("Direction"), {
+    target: { value: "desc" },
+  });
+  const next = screen.getByRole("button", { name: "Next records" });
+  await waitFor(() => expect(next).toBeEnabled());
+  fireEvent.click(next);
+  await waitFor(() => {
+    const params = new URL(String(fetch.mock.calls.at(-1)?.[0])).searchParams;
+    expect(Object.fromEntries(params)).toEqual({
+      page: "2",
+      page_size: "25",
+      status: "rejected",
+      search: "bad",
+      category: "Email",
+      sort: "email",
+      direction: "desc",
+    });
+  });
+
+  fireEvent.click(screen.getByRole("button", { name: "Reset Filters" }));
+  expect(screen.getByLabelText("Search all records")).toHaveValue("");
+  expect(screen.getByLabelText("Record status")).toHaveValue("all");
+  expect(screen.getByLabelText("Error category")).toHaveValue("");
+  expect(screen.getByLabelText("Sort by")).toHaveValue("row_number");
+  expect(screen.getByLabelText("Direction")).toHaveValue("asc");
+  await waitFor(() => {
+    const requested = new URL(String(fetch.mock.calls.at(-1)?.[0]));
+    expect(Object.fromEntries(requested.searchParams)).toEqual({
+      page: "1",
+      page_size: "25",
+      status: "all",
+      search: "",
+      category: "",
+      sort: "row_number",
+      direction: "asc",
+    });
+    const exported = new URL(
+      screen.getByRole("link", { name: "Export filtered CSV" }).getAttribute("href")!,
+    );
+    expect(exported.search).toBe(requested.search);
+  });
+  expect(screen.getByLabelText("Record 3 email")).toHaveValue("fixed@example.com");
+  expect(screen.getByText("edited")).toBeInTheDocument();
+  expect(screen.getByText("Field validation passed.")).toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: "Reprocess corrected dataset" }),
+  ).toBeEnabled();
+
+  fireEvent.click(screen.getByRole("button", { name: "Validate corrections" }));
+  await waitFor(() =>
+    expect(fetch).toHaveBeenLastCalledWith(
+      expect.stringContaining("/corrections/validate"),
+      expect.objectContaining({
+        body: JSON.stringify({ patches: { 3: { email: "fixed@example.com" } } }),
+      }),
+    ),
+  );
+});
+
 it.each([
   { ...record, status: "accepted", issues: [], label: "Inspect record 3" },
   {
