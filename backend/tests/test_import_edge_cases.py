@@ -45,12 +45,12 @@ def test_malformed_preview_cleans_up_without_creating_job(client, content):
     assert client.get("/api/v1/jobs").json()["total"] == 0
 
 
-def test_bom_crlf_and_quoted_comma_preserve_record_values(client):
+def test_bom_crlf_and_multiline_quotes_preserve_records_and_exports(client):
     buffer = io.StringIO(newline="")
     writer = csv.writer(buffer)
     writer.writerow(REQUIRED_COLUMNS)
     values = ROW.replace("bad-email", "alice@example.com").split(",")
-    values[0] = "customer, with comma"
+    values[0] = 'customer, with comma\nand "quotes"'
     writer.writerow(values)
     payload = b"\xef\xbb\xbf" + buffer.getvalue().encode()
     response = client.post(
@@ -59,6 +59,7 @@ def test_bom_crlf_and_quoted_comma_preserve_record_values(client):
     assert response.status_code == 202
     job = response.json()["job_id"]
     assert process_job(job) == "completed"
+    assert client.get(f"/api/v1/jobs/{job}").json()["valid_rows"] == 1
     record = client.get(f"/api/v1/jobs/{job}/records").json()["records"][0]
     assert record["status"] == "accepted"
     assert record["values"]["customer_id"] == values[0]

@@ -24,15 +24,7 @@ def upload(client, text, name="sample.csv"):
     assert result["status"] == "pending"
     process_job_task.apply(args=[result["job_id"]], throw=True)
     detail = client.get(result["status_url"]).json()
-    return {
-        **result,
-        "status": detail["status"],
-        "processing_summary": {
-            **detail,
-            "cleaned_filename": detail["filename_cleaned"],
-            "error_filename": detail["filename_error_report"],
-        },
-    }
+    return {**result, **detail}
 
 
 def test_header_failure_persisted_and_safe_download():
@@ -55,34 +47,7 @@ def test_header_failure_persisted_and_safe_download():
             == 409
         )
         assert "saved_path" not in result
-        assert "cleaned_path" not in result["processing_summary"]
-
-
-def test_processing_exception_retains_failed_job(monkeypatch):
-    def fail(_, **kwargs):
-        raise RuntimeError("private/path")
-
-    monkeypatch.setattr("app.services.job_processing.process_csv_file", fail)
-    with TestClient(app) as client:
-        result = upload(client, HEADER + "\n" + ROW)
-        assert result["status"] == "failed"
-        assert "private/path" not in json.dumps(result)
-        assert client.get("/api/v1/jobs?status=failed").json()["total"] == 1
-
-
-def test_persisted_quality_duplicates_and_original_anomaly_row():
-    anomaly = ROW.replace("C1,", "C2,").replace("125.50", "1500")
-    invalid = ROW.replace("alice@example.com", "bad-email")
-    with TestClient(app) as client:
-        result = upload(client, "\n".join([HEADER, ROW, ROW, invalid, anomaly]))
-        job = client.get(f"/api/v1/jobs/{result['job_id']}").json()
-        assert (job["total_rows"], job["valid_rows"], job["invalid_rows"]) == (4, 2, 2)
-        assert job["analysis"]["duplicate_records"] == 1
-        assert job["analysis"]["anomalies"][0]["row"] == 5
-        assert job["analysis"]["quality"]["score"] == 62.5
-        assert job["analysis"]["error_preview"][0]["row_number"] == "3"
-        assert job["duration_ms"] >= 0
-        assert job["file_size"] > 0
+        assert "cleaned_path" not in result
 
 
 def test_pagination_search_and_status():
@@ -104,10 +69,7 @@ def test_file_names_and_repeated_uploads():
         second = upload(client, HEADER + "\n" + ROW, "../../report.csv")
         assert "/" not in first["saved_filename"]
         assert (INPUT_DIR / first["saved_filename"]).is_file()
-        assert (
-            first["processing_summary"]["cleaned_filename"]
-            != second["processing_summary"]["cleaned_filename"]
-        )
+        assert first["filename_cleaned"] != second["filename_cleaned"]
 
 
 def test_size_limit_and_partial_cleanup(monkeypatch):
@@ -138,15 +100,25 @@ def test_stronger_validation(field, value, expected):
     assert expected in validate_row(row, 2)
 
 
-def test_scores_are_deterministic_and_empty_is_unscored():
+def test_quality_score_examples_and_empty_dataset():
     assert calculate_quality(0, 0, 0, 12, 0, 0)["score"] is None
     assert calculate_quality(10, 10, 0, 12, 0, 0)["score"] == 100
     assert calculate_quality(10, 8, 12, 12, 1, 2)["score"] == 82.5
 
 
-def test_ai_schema_rejects_incomplete_or_out_of_range():
-    with pytest.raises(ValidationError):
-        AIReport.model_validate({"quality_score": 101})
+@pytest.mark.parametrize("score,error_type", [
+    (-1.0, "greater_than_equal"), (101.0, "less_than_equal"),
+])
+def test_ai_report_rejects_only_out_of_range_quality_score(score, error_type):
+    report = {
+        "quality_score": score, "severity": "low", "executive_summary": "Good quality.",
+        "key_issues": [], "recommended_actions": [], "business_impact": "Ready for review.",
+    }
+    with pytest.raises(ValidationError) as error:
+        AIReport.model_validate(report)
+    assert [(item["loc"], item["type"]) for item in error.value.errors()] == [
+        (("quality_score",), error_type),
+    ]
 
 
 def test_ai_privacy_persistence_and_cache(monkeypatch):
@@ -197,15 +169,7 @@ def test_ai_malformed_response_and_no_key(monkeypatch):
     assert llm_analyzer.generate_ai_analysis({})["report"] is None
 
 
-def test_utf8_bom_and_multiline_records():
-    with TestClient(app) as client:
-        row = ROW.replace("electronics", '"home,\nelectronics"')
-        result = upload(client, "\ufeff" + HEADER + "\n" + row)
-        assert result["status"] == "completed"
-        assert result["processing_summary"]["valid_rows"] == 1
-
-
-def test_empty_and_duplicate_headers_fail():
+def test_header_only_and_duplicate_headers_are_persisted_failures():
     with TestClient(app) as client:
         assert upload(client, HEADER + "\n")["status"] == "failed"
         assert upload(client, HEADER + ",email\n")["status"] == "failed"

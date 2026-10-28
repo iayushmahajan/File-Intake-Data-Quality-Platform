@@ -7,7 +7,7 @@ from app.core.db import engine
 from app.main import app
 from app.models.processing_job import JobImport, JobRecord
 from app.services.job_processing import process_job
-from app.services.validator import REQUIRED_COLUMNS
+from app.services.validator import REQUIRED_COLUMNS, validate_row
 from fastapi.testclient import TestClient
 from sqlmodel import Session, select
 
@@ -231,6 +231,10 @@ def test_mapping_preview_templates_and_snapshot_versions():
             data={"import_options": json.dumps(chosen)},
         )
         assert stale.status_code == 409
+        assert stale.json() == {
+            "detail": "Template changed or no longer exists. Reload templates and preview again.",
+        }
+        assert client.get("/api/v1/jobs").json()["total"] == 1
         assert len(client.get("/api/v1/imports/templates").json()) == 1
         # Even after a template update, corrections reuse the job's saved rules.
         body = {"patches": {"2": {"order_amount": "90"}}}
@@ -248,10 +252,14 @@ def test_mapping_preview_templates_and_snapshot_versions():
 
 
 def test_date_and_allowed_value_rules_normalize_without_changing_source():
+    disallowed = GOOD.replace("C1,", "C2,").replace(",DE,", ",US,")
+    assert validate_row(dict(zip(REQUIRED_COLUMNS, disallowed.split(","))), 3) == []
     text = (
         HEADER
         + "\n"
         + GOOD.replace("2026-04-01", "01/04/2026").replace("2026-04-10", "10/04/2026")
+        + "\n"
+        + disallowed.replace("2026-04-01", "01/04/2026").replace("2026-04-10", "10/04/2026")
     )
     options = {
         "mapping": IDENTITY,
@@ -263,11 +271,20 @@ def test_date_and_allowed_value_rules_normalize_without_changing_source():
     }
     with TestClient(app) as client:
         job = upload(client, text, options)
-        assert client.get(f"/api/v1/jobs/{job}").json()["valid_rows"] == 1
+        detail = client.get(f"/api/v1/jobs/{job}").json()
+        assert (detail["valid_rows"], detail["invalid_rows"]) == (1, 1)
         assert "2026-04-01" in client.get(f"/api/v1/jobs/{job}/download/clean").text
         row = client.get(f"/api/v1/jobs/{job}/records").json()["records"][0]
         assert row["values"]["signup_date"] == "01/04/2026"
         assert row["normalized"]["signup_date"] == "2026-04-01"
+        rejected = client.get(f"/api/v1/jobs/{job}/records?status=rejected").json()["records"]
+        assert len(rejected) == 1
+        assert rejected[0]["values"]["country"] == "US"
+        assert rejected[0]["normalized"] == {}
+        assert rejected[0]["issues"] == [{
+            "fields": ["country"], "category": "Country / Currency",
+            "message": "country is outside template allowed values",
+        }]
 
 
 def test_import_configuration_rejects_unsafe_or_ambiguous_options():

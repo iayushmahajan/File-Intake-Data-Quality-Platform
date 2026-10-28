@@ -113,21 +113,34 @@ it("blocks previews when two fields map to the same source column", async () => 
   ).toBeDisabled();
 });
 
-it("reports upload failure and permits retry without reporting success", async () => {
+it("retries a failed upload successfully without premature success", async () => {
   const complete = vi.fn(),
     failed = vi.fn(),
     started = vi.fn();
+  const result = {
+    job_id: 12,
+    status: "pending",
+    status_url: "/api/v1/jobs/12",
+    message: "Upload accepted for background processing.",
+    original_filename: "sample.csv",
+    saved_filename: "saved_sample.csv",
+    error_message: null,
+  };
+  const uploadRequest = vi
+    .fn()
+    .mockResolvedValueOnce({
+      ok: false,
+      status: 503,
+      json: async () => ({ detail: "Processing service unavailable" }),
+    })
+    .mockResolvedValueOnce({ ok: true, json: async () => result });
   vi.stubGlobal(
     "fetch",
     vi
       .fn()
       .mockImplementation(async (url: string) =>
         url.endsWith("/uploads")
-          ? {
-              ok: false,
-              status: 503,
-              json: async () => ({ detail: "Processing service unavailable" }),
-            }
+          ? uploadRequest()
           : {
               ok: true,
               json: async () => (url.endsWith("/templates") ? [] : inspection),
@@ -154,4 +167,10 @@ it("reports upload failure and permits retry without reporting success", async (
   expect(started).toHaveBeenCalledTimes(1);
   expect(failed).toHaveBeenCalledTimes(1);
   expect(upload).toBeEnabled();
+  fireEvent.click(upload);
+  await waitFor(() => expect(complete).toHaveBeenCalledWith(result));
+  expect(complete).toHaveBeenCalledTimes(1);
+  expect(started).toHaveBeenCalledTimes(2);
+  expect(failed).toHaveBeenCalledTimes(1);
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 });

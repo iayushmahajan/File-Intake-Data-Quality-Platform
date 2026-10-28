@@ -1,12 +1,15 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { ResultsPanel } from "./ResultsPanel";
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.useRealTimers();
+  vi.unstubAllGlobals();
+});
 it("shows a useful empty state", () => {
   render(<ResultsPanel jobId={null} />);
   expect(screen.getByText(/Your next dataset/)).toBeInTheDocument();
 });
-it("shows state-based processing without fabricated percentages", () => {
+it("shows upload status while sending a file", () => {
   render(<ResultsPanel jobId={null} isLoading />);
   expect(screen.getByRole("status")).toHaveTextContent("Uploading your file");
 });
@@ -100,7 +103,6 @@ it("polls queued and processing jobs, then stops on completion", async () => {
   });
   expect(fetchMock).toHaveBeenCalledTimes(3);
   view.unmount();
-  vi.useRealTimers();
 });
 
 it("resumes polling after a transient connection failure and stops on failure", async () => {
@@ -144,7 +146,6 @@ it("resumes polling after a transient connection failure and stops on failure", 
   });
   expect(fetchMock).toHaveBeenCalledTimes(2);
   view.unmount();
-  vi.useRealTimers();
 });
 
 it("cancels an active job's scheduled polls when unmounted", async () => {
@@ -174,5 +175,4 @@ it("cancels an active job's scheduled polls when unmounted", async () => {
   });
   expect(fetchMock).toHaveBeenCalledTimes(1);
   expect(fetchMock.mock.calls[0][1].signal.aborted).toBe(true);
-  vi.useRealTimers();
 });
