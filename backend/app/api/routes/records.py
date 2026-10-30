@@ -19,7 +19,7 @@ from app.models.processing_job import JobImport, JobRecord
 from app.intake.schemas import REQUIRED_COLUMNS, ImportOptions
 from app.records.schemas import CorrectionRequest, RecordPage, RecordResponse
 from app.schemas.job import UploadResponse
-from app.services.import_config import row_errors, structured_issues
+from app.intake.validation import row_errors, structured_issues
 from app.services.job_creation import create_job
 
 router = APIRouter(prefix="/api/v1/jobs", tags=["records"])

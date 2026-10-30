@@ -1,10 +1,8 @@
 import csv
 import re
-from datetime import datetime
-from decimal import Decimal, InvalidOperation
 
 from app.intake.schemas import REQUIRED_COLUMNS, ImportOptions
-from app.services.validator import get_error_category, validate_row
+from app.intake.validation import row_errors, structured_issues
 
 
 def suggest_mapping(headers):
@@ -53,70 +51,6 @@ def check_mapping(headers, options: ImportOptions):
 def canonical_row(source, options: ImportOptions):
     mapping = options.mapping or {k: k for k in REQUIRED_COLUMNS}
     return {field: source.get(column) for field, column in mapping.items()}
-
-
-def prepare_row(values, options: ImportOptions):
-    result = dict(values)
-    for field, rule in options.rules.items():
-        if rule.date_format and result.get(field):
-            try:
-                result[field] = datetime.strptime(
-                    result[field].strip(), rule.date_format
-                ).strftime("%Y-%m-%d")
-            except ValueError:
-                # Force base validation to reject a date in the wrong configured format.
-                result[field] = "invalid configured date format"
-    return result
-
-
-def row_errors(values, row_number, options: ImportOptions):
-    prepared = prepare_row(values, options)
-    errors = validate_row(prepared, row_number)
-    for field, rule in options.rules.items():
-        value = (values.get(field) or "").strip()
-        if (
-            rule.required
-            and not value
-            and not any(field in e and "required" in e for e in errors)
-        ):
-            errors.append(f"{field} is required by template")
-        if rule.allowed_values and value.casefold() not in {
-            v.strip().casefold() for v in rule.allowed_values
-        }:
-            errors.append(f"{field} is outside template allowed values")
-        if rule.minimum is not None or rule.maximum is not None:
-            try:
-                number = Decimal(value)
-                if number.is_finite():
-                    if rule.minimum is not None and number < Decimal(str(rule.minimum)):
-                        errors.append(
-                            f"{field} is below template minimum {rule.minimum}"
-                        )
-                    if rule.maximum is not None and number > Decimal(str(rule.maximum)):
-                        errors.append(
-                            f"{field} exceeds template maximum {rule.maximum}"
-                        )
-            except InvalidOperation:
-                pass  # Base validation already reports malformed numbers.
-    return errors, prepared
-
-
-def structured_issues(errors):
-    issues = []
-    for message in errors:
-        fields = [field for field in REQUIRED_COLUMNS if field in message]
-        if "currency mismatch" in message:
-            fields = ["country", "currency"]
-        if "zero amount" in message:
-            fields = ["order_amount", "order_status"]
-        issues.append(
-            {
-                "message": message,
-                "fields": fields,
-                "category": get_error_category(message),
-            }
-        )
-    return issues
 
 
 def inspect_csv(path, options=None):

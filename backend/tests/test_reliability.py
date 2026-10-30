@@ -7,7 +7,7 @@ from app.main import app
 from app.schemas.ai import AIReport
 from app.services.quality import calculate_quality
 from app.intake.schemas import REQUIRED_COLUMNS
-from app.services.validator import validate_row
+from app.intake.validation import validate_row
 from app.tasks import process_job_task
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
