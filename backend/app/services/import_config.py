@@ -3,8 +3,8 @@ import re
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
 
-from app.schemas.imports import ImportOptions
-from app.services.validator import REQUIRED_COLUMNS, get_error_category, validate_row
+from app.intake.schemas import REQUIRED_COLUMNS, ImportOptions
+from app.services.validator import get_error_category, validate_row
 
 
 def suggest_mapping(headers):

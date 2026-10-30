@@ -8,7 +8,7 @@ import pytest
 from app.core.config import INPUT_DIR
 from app.main import app
 from app.services.job_processing import process_job
-from app.services.validator import REQUIRED_COLUMNS
+from app.intake.schemas import REQUIRED_COLUMNS
 from fastapi.testclient import TestClient
 
 HEADER = ",".join(REQUIRED_COLUMNS)

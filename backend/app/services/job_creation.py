@@ -6,7 +6,7 @@ from app.models.processing_job import (
     JobImport,
     ProcessingJob,
 )
-from app.schemas.imports import ImportOptions
+from app.intake.schemas import ImportOptions
 from app.schemas.job import UploadResponse
 from fastapi import Response
 from sqlmodel import Session

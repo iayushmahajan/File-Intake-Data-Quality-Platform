@@ -3,8 +3,8 @@
 import json
 
 import pytest
-from app.schemas.imports import CorrectionRequest, FieldRule, ImportOptions, TemplateWrite
-from app.services.validator import REQUIRED_COLUMNS
+from app.intake.schemas import REQUIRED_COLUMNS, FieldRule, ImportOptions, TemplateWrite
+from app.records.schemas import CorrectionRequest
 from pydantic import ValidationError
 
 

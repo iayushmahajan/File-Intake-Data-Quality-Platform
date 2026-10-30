@@ -8,7 +8,7 @@ from sqlmodel import Session, select
 
 from app.core.db import get_session
 from app.models.processing_job import ImportTemplate
-from app.schemas.imports import ImportOptions, TemplateWrite
+from app.intake.schemas import ImportOptions, TemplateWrite
 from app.services.import_config import inspect_csv
 from app.utils.file_io import save_upload_file
 

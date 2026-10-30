@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from app.main import app
 from app.services.job_processing import process_job
-from app.services.validator import REQUIRED_COLUMNS
+from app.intake.schemas import REQUIRED_COLUMNS
 from fastapi.testclient import TestClient
 from test_uploads import VALID_CSV
 

@@ -7,7 +7,8 @@ from app.core.db import engine
 from app.main import app
 from app.models.processing_job import JobImport, JobRecord
 from app.services.job_processing import process_job
-from app.services.validator import REQUIRED_COLUMNS, validate_row
+from app.intake.schemas import REQUIRED_COLUMNS
+from app.services.validator import validate_row
 from fastapi.testclient import TestClient
 from sqlmodel import Session, select
 

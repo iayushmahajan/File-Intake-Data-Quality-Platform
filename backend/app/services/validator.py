@@ -3,20 +3,7 @@ import re
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
 
-REQUIRED_COLUMNS = [
-    "customer_id",
-    "email",
-    "country",
-    "signup_date",
-    "order_amount",
-    "currency",
-    "payment_method",
-    "order_status",
-    "product_category",
-    "quantity",
-    "discount_percent",
-    "last_login_date",
-]
+from app.intake.schemas import REQUIRED_COLUMNS
 
 ALLOWED_COUNTRIES = {"DE", "FR", "IN", "US", "GB"}
 ALLOWED_CURRENCIES = {"EUR", "USD", "INR"}

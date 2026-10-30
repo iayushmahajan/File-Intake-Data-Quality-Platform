@@ -4,7 +4,7 @@ from pathlib import Path
 
 from app.core.config import OUTPUT_DIR
 from app.core.logging import get_logger
-from app.schemas.imports import ImportOptions
+from app.intake.schemas import REQUIRED_COLUMNS, ImportOptions
 from app.services.analyzer import analyze_processed_data
 from app.services.import_config import (
     canonical_row,
@@ -15,7 +15,6 @@ from app.services.import_config import (
 from app.services.report_generator import write_cleaned_csv, write_error_csv
 from app.services.transformer import transform_row
 from app.services.validator import (
-    REQUIRED_COLUMNS,
     get_error_category,
     validate_csv_columns,
 )
