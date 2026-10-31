@@ -2,8 +2,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Literal
 
-from app.schemas.ai import AIReport
-from app.schemas.analysis import AnalysisResponse
+from app.analytics.schemas import AIReport, AnalysisResponse
 from pydantic import BaseModel, ConfigDict, Field, field_serializer, model_validator
 
 JobStatus = Literal["pending", "queued", "processing", "completed", "failed"]

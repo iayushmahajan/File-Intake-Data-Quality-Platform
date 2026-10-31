@@ -4,8 +4,8 @@ from types import SimpleNamespace
 import pytest
 from app.core.config import INPUT_DIR
 from app.main import app
-from app.schemas.ai import AIReport
-from app.services.quality import calculate_quality
+from app.analytics.schemas import AIReport
+from app.analytics.analysis import calculate_quality
 from app.intake.schemas import REQUIRED_COLUMNS
 from app.intake.validation import validate_row
 from app.tasks import process_job_task
@@ -150,7 +150,7 @@ def test_ai_privacy_persistence_and_cache(monkeypatch):
 
 
 def test_ai_malformed_response_and_no_key(monkeypatch):
-    from app.services import llm_analyzer
+    from app.analytics import ai as llm_analyzer
 
     monkeypatch.setattr(llm_analyzer, "OPENAI_API_KEY", "")
     assert llm_analyzer.generate_ai_analysis({})["report"] is None

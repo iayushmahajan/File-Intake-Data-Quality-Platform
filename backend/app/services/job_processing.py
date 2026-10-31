@@ -17,7 +17,7 @@ from app.models.processing_job import (
     JobRecord,
     ProcessingJob,
 )
-from app.schemas.analysis import AnalysisResponse
+from app.analytics.schemas import AnalysisResponse
 from app.intake.schemas import ImportOptions
 from app.services.csv_processor import process_csv_file
 from billiard.exceptions import SoftTimeLimitExceeded

@@ -14,9 +14,9 @@ from app.models.processing_job import (
     JobImport,
     ProcessingJob,
 )
-from app.schemas.ai import AIAnalysisResponse
+from app.analytics.schemas import AIAnalysisResponse
 from app.schemas.job import JobDetailResponse, JobListResponse
-from app.services.llm_analyzer import generate_ai_analysis
+from app.analytics.ai import generate_ai_analysis
 
 router = APIRouter(prefix="/api/v1/jobs", tags=["jobs"])
 

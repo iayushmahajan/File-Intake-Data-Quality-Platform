@@ -5,7 +5,7 @@ from pathlib import Path
 from app.core.config import OUTPUT_DIR
 from app.core.logging import get_logger
 from app.intake.schemas import REQUIRED_COLUMNS, ImportOptions
-from app.services.analyzer import analyze_processed_data
+from app.analytics.analysis import analyze_processed_data
 from app.intake.validation import (
     get_error_category,
     row_errors,
@@ -238,7 +238,7 @@ def process_csv_file(
         error_breakdown=error_breakdown,
     )
 
-    from app.services.quality import calculate_quality
+    from app.analytics.analysis import calculate_quality
 
     for anomaly in analysis["anomalies"]:
         anomaly["row"] = source_rows[anomaly["row"] - 1]
