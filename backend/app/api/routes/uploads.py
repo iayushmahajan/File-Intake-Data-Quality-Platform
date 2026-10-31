@@ -6,7 +6,7 @@ from sqlmodel import Session
 from app.api.routes.imports import parse_options, resolve_options
 from app.core.db import get_session
 from app.schemas.job import UploadResponse
-from app.services.import_config import check_mapping
+from app.intake.mapping import check_mapping
 from app.services.job_creation import create_job
 from app.utils.file_io import save_upload_file
 

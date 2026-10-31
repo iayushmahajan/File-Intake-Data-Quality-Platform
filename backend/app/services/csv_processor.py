@@ -13,7 +13,7 @@ from app.intake.validation import (
     transform_row,
     validate_csv_columns,
 )
-from app.services.import_config import canonical_row, check_mapping
+from app.intake.mapping import canonical_row, check_mapping
 from app.services.report_generator import write_cleaned_csv, write_error_csv
 
 logger = get_logger(__name__)
