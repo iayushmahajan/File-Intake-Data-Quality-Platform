@@ -105,12 +105,24 @@ A task can be delivered more than once. The worker checks ownership of the job b
 
 ## Run locally
 
+With Docker running and Node.js/pnpm installed, start the entire local project from a Linux/WSL terminal:
+
+```bash
+./run.sh
+```
+
+Open **http://localhost:5175**. The script rebuilds and recreates containers to refresh shared storage, reuses the existing Docker project/data volumes, and starts the frontend. It installs frontend dependencies if absent. Stop any existing frontend on port 5175 first. `Ctrl+C` stops the frontend; backend services keep running.
+
+In VS Code, open this project folder (in WSL if applicable) and press **Ctrl+Shift+B**, or choose **Terminal → Run Task → Run full project**. Use **Terminal → Run Task → Stop backend services** to stop Docker services without deleting saved data.
+
+For individual setup and service commands:
+
 Requires Docker with Compose, Node.js 22+ and pnpm 10.32.1. On Windows, enable Docker Desktop integration for your WSL distro.
 
 ```bash
 # From the repository root
 cp -n .env.example .env
-docker compose up --build -d --wait
+docker compose -p file-intake-processing-service up --build -d --wait
 
 cd frontend
 pnpm install --frozen-lockfile
@@ -129,11 +141,11 @@ The root `.env.example` uses `redis://redis:6379/0` for the Compose broker. If a
 
 ```bash
 # Run from the repository root
-docker compose logs -f api worker dispatcher
-docker compose down
+docker compose -p file-intake-processing-service logs -f api worker dispatcher
+docker compose -p file-intake-processing-service down
 ```
 
-`docker compose down` preserves the database and Redis volumes. The default setup binds the API and Redis to localhost and is intended for a single operator.
+Use the same `-p file-intake-processing-service` project name for all commands above and the launcher so they address the same containers and persistent volumes. `docker compose down` without `--volumes` preserves the database and Redis volumes. The default setup binds the API and Redis to localhost and is intended for a single operator.
 
 For SQLite development, migrations and all environment variables, see the [development reference](docs/DEVELOPMENT.md).
 
@@ -146,6 +158,13 @@ Sample files are in `backend/samples/`:
 | `normal_demo.csv` | Mostly valid transaction records |
 | `heavier_error_demo.csv` | Validation errors and rejected records |
 | `anomaly_demo.csv` | Accepted records with anomaly signals |
+| [`mixed_100_records.csv`](backend/samples/mixed_100_records.csv) | 100 records: 70 valid and 30 invalid |
+| [`mixed_500_records.csv`](backend/samples/mixed_500_records.csv) | 500 records: 350 valid and 150 invalid |
+| [`mixed_1000_records.csv`](backend/samples/mixed_1000_records.csv) | 1,000 records: 700 valid and 300 invalid |
+| [`mixed_10000_records.csv`](backend/samples/mixed_10000_records.csv) | 10,000 records: 7,000 valid and 3,000 invalid |
+| [`mixed_1000_varied_issues.csv`](backend/samples/mixed_1000_varied_issues.csv) | 1,000 records with uneven, scattered issues across all quality dimensions: 663 accepted, 337 rejected |
+
+The mixed datasets contain invalid emails, negative amounts, zero quantities, impossible dates, discounts above 100% and country/currency mismatches. Expected counts use the default validation rules. Record counts exclude the header. For the broader quality sample, see the [varied-issues breakdown](backend/samples/VARIED_ISSUES.md).
 
 Choose a sample, confirm the column mapping, select **Preview validation**, then **Upload and Analyze CSV**. Explore Overview, Validation, Data profile, Anomalies and the dataset explorer, then download the clean or error CSV. Reopen the job from history to see its saved results. Samples use fictional identifiers and example.com email addresses.
 
