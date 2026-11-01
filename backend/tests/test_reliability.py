@@ -137,7 +137,7 @@ def test_ai_privacy_persistence_and_cache(monkeypatch):
         captured.append(summary)
         return {"report": report}
 
-    monkeypatch.setattr("app.api.routes.jobs.generate_ai_analysis", fake)
+    monkeypatch.setattr("app.jobs.routes.generate_ai_analysis", fake)
     with TestClient(app) as client:
         result = upload(client, HEADER + "\n" + ROW, "customer-secret.csv")
         url = f"/api/v1/jobs/{result['job_id']}"

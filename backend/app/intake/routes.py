@@ -10,8 +10,8 @@ from app.core.db import get_session
 from app.models.processing_job import ImportTemplate
 from app.intake.schemas import ImportOptions, TemplateWrite
 from app.intake.mapping import check_mapping, inspect_csv
-from app.schemas.job import UploadResponse
-from app.services.job_creation import create_job
+from app.jobs.schemas import UploadResponse
+from app.jobs.service import create_job
 from app.utils.file_io import save_upload_file
 
 imports_router = APIRouter(prefix="/api/v1/imports", tags=["imports"])

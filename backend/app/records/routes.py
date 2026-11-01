@@ -12,15 +12,14 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy import func
 from sqlmodel import Session, select
 
-from app.api.routes.jobs import get_job_or_404
+from app.jobs.service import create_job, get_job_or_404
 from app.core.config import INPUT_DIR, MAX_UPLOAD_BYTES
 from app.core.db import engine, get_session
 from app.models.processing_job import JobImport, JobRecord
 from app.intake.schemas import REQUIRED_COLUMNS, ImportOptions
 from app.records.schemas import CorrectionRequest, RecordPage, RecordResponse
-from app.schemas.job import UploadResponse
+from app.jobs.schemas import UploadResponse
 from app.intake.validation import row_errors, structured_issues
-from app.services.job_creation import create_job
 
 router = APIRouter(prefix="/api/v1/jobs", tags=["records"])
 
