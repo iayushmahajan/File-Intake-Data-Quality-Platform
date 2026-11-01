@@ -4,10 +4,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes.health import router as health_router
-from app.api.routes.imports import router as imports_router
 from app.api.routes.jobs import router as jobs_router
 from app.api.routes.records import router as records_router
-from app.api.routes.uploads import router as uploads_router
+from app.intake.routes import imports_router, uploads_router
 from app.core.config import APP_DESCRIPTION, APP_NAME, APP_VERSION, CORS_ORIGINS
 from app.core.db import migrate_database
 from app.core.logging import configure_logging, get_logger
