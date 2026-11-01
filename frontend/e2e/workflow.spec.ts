@@ -198,3 +198,59 @@ test("map partner columns, save a template, correct rejected data and preserve t
     ),
   ).toBeTruthy();
 });
+
+test("job navigation requires discarding drafts and submitted corrections leave no stale guard", async ({
+  page, request,
+}) => {
+  await page.goto("/");
+  await page.getByLabel("CSV file").setInputFiles({
+    name: "draft-parent.csv", mimeType: "text/csv",
+    buffer: Buffer.from([header, good, good.replace("C1,", "C2,").replace("alice@example.com", "bad-email")].join("\n")),
+  });
+  await page.getByRole("button", { name: "Preview validation", exact: true }).click();
+  await page.getByRole("button", { name: "Upload and Analyze CSV", exact: true }).click();
+  await expect(page.getByText("50.0% invalid")).toBeVisible({ timeout: 20000 });
+  const parent = new URL(page.url()).searchParams.get("job")!;
+  const accepted = await request.post("http://127.0.0.1:8011/api/v1/uploads", {
+    multipart: { file: { name: "draft-target.csv", mimeType: "text/csv", buffer: Buffer.from([header, good].join("\n")) } },
+  });
+  expect(accepted.status()).toBe(202);
+  const target = (await accepted.json()).job_id;
+  await page.getByRole("button", { name: "Refresh", exact: true }).click();
+  const explorer = page.getByRole("region", { name: "Dataset explorer" });
+  const edit = async () => {
+    await explorer.getByRole("button", { name: "Correct record 3", exact: true }).click();
+    await explorer.getByLabel("Record 3 email", { exact: true }).fill("fixed@example.com");
+    await explorer.getByRole("button", { name: "Validate corrections", exact: true }).click();
+    await expect(explorer.getByRole("button", { name: "Reprocess corrected dataset", exact: true })).toBeEnabled();
+  };
+  await edit();
+  const parentUrl = page.url();
+  const openTarget = page.getByRole("button", { name: `#${target} · draft-target.csv`, exact: true });
+  await openTarget.click();
+  const dialog = page.getByRole("dialog", { name: "Discard unsaved corrections?" });
+  await expect(dialog).toBeVisible();
+  await expect(page).toHaveURL(parentUrl);
+  await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(dialog).not.toBeVisible();
+  await expect(page).toHaveURL(parentUrl);
+  await expect(explorer.getByLabel("Record 3 email", { exact: true })).toHaveValue("fixed@example.com");
+  await expect(explorer.getByText("Field validation passed.", { exact: true })).toBeVisible();
+  await expect(explorer.getByRole("button", { name: "Reprocess corrected dataset", exact: true })).toBeEnabled();
+  await openTarget.click();
+  await dialog.getByRole("button", { name: "Discard", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "draft-target.csv", exact: true })).toBeVisible();
+  await expect(page).toHaveURL(new RegExp(`job=${target}(?:&|$)`));
+  await page.getByRole("button", { name: `#${parent} · draft-parent.csv`, exact: true }).click();
+  await expect(explorer.getByText("1 record with unsaved corrections", { exact: true })).toHaveCount(0);
+  await explorer.getByRole("button", { name: "Correct record 3", exact: true }).click();
+  await expect(explorer.getByLabel("Record 3 email", { exact: true })).toHaveValue("bad-email");
+  await edit();
+  await explorer.getByRole("button", { name: "Reprocess corrected dataset", exact: true }).click();
+  await expect(page.getByRole("region", { name: "Correction comparison" })).toBeVisible({ timeout: 20000 });
+  await expect(page.getByText("Accepted: 1 → 2 · Rejected: 1 → 0")).toBeVisible();
+  await expect(dialog).not.toBeVisible();
+  await page.getByRole("button", { name: `Open original job #${parent}`, exact: true }).click();
+  await expect(page).toHaveURL(parentUrl);
+  await expect(dialog).not.toBeVisible();
+});

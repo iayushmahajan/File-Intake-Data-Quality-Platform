@@ -11,11 +11,13 @@ export function ResultsPanel({
   isLoading = false,
   onTerminal,
   onSelect,
+  onDraftChange,
 }: {
   jobId: number | null;
   isLoading?: boolean;
   onTerminal?: () => void;
   onSelect?: (id: number) => void;
+  onDraftChange?: (hasDrafts: boolean) => void;
 }) {
   const [category, setCategory] = useState("");
   const [categoryChange, setCategoryChange] = useState(0);
@@ -302,6 +304,7 @@ export function ResultsPanel({
                   category={category}
                   categoryChange={categoryChange}
                   onCreated={onSelect}
+                  onDraftChange={onDraftChange}
                 />
               )}
               {job.status === "completed" && !job.records_available && (
