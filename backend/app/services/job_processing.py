@@ -17,9 +17,9 @@ from app.models.processing_job import (
     JobRecord,
     ProcessingJob,
 )
-from app.schemas.analysis import AnalysisResponse
-from app.schemas.imports import ImportOptions
-from app.services.csv_processor import process_csv_file
+from app.analytics.schemas import AnalysisResponse
+from app.intake.schemas import ImportOptions
+from app.intake.processing import process_csv_file
 from billiard.exceptions import SoftTimeLimitExceeded
 from sqlalchemy import insert, update
 from sqlalchemy.exc import SQLAlchemyError

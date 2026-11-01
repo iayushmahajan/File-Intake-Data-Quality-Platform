@@ -3,8 +3,22 @@
 import math
 from typing import Literal
 
-from app.services.validator import REQUIRED_COLUMNS
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+REQUIRED_COLUMNS = [
+    "customer_id",
+    "email",
+    "country",
+    "signup_date",
+    "order_amount",
+    "currency",
+    "payment_method",
+    "order_status",
+    "product_category",
+    "quantity",
+    "discount_percent",
+    "last_login_date",
+]
 
 
 class FieldRule(BaseModel):
@@ -69,29 +83,3 @@ class TemplateWrite(BaseModel):
     name: str = Field(min_length=1, max_length=80)
     options: ImportOptions
     expected_version: int | None = Field(default=None, gt=0)
-
-
-class CorrectionRequest(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    patches: dict[int, dict[str, str]] = Field(min_length=1, max_length=200)
-
-    @model_validator(mode="after")
-    def valid_patches(self):
-        size = 0
-        for row, values in self.patches.items():
-            if (
-                row < 2
-                or row > 2147483647
-                or not values
-                or set(values) - set(REQUIRED_COLUMNS)
-            ):
-                raise ValueError(
-                    "Corrections must reference data records and known fields"
-                )
-            for value in values.values():
-                if len(value) > 10000:
-                    raise ValueError("A corrected cell cannot exceed 10,000 characters")
-                size += len(value.encode("utf-8"))
-        if size > 1024 * 1024:
-            raise ValueError("Correction batch exceeds 1 MiB")
-        return self

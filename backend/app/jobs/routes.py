@@ -14,20 +14,12 @@ from app.models.processing_job import (
     JobImport,
     ProcessingJob,
 )
-from app.schemas.ai import AIAnalysisResponse
-from app.schemas.job import JobDetailResponse, JobListResponse
-from app.services.llm_analyzer import generate_ai_analysis
+from app.analytics.schemas import AIAnalysisResponse
+from app.jobs.schemas import JobDetailResponse, JobListResponse
+from app.analytics.ai import generate_ai_analysis
+from app.jobs.service import get_job_or_404
 
 router = APIRouter(prefix="/api/v1/jobs", tags=["jobs"])
-
-
-def get_job_or_404(job_id: int, session: Session) -> ProcessingJob:
-    job = session.get(ProcessingJob, job_id)
-
-    if job is None:
-        raise HTTPException(status_code=404, detail="Job not found.")
-
-    return job
 
 
 def return_csv_file(

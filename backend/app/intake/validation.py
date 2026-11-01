@@ -2,21 +2,9 @@ import math
 import re
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
+from typing import Dict
 
-REQUIRED_COLUMNS = [
-    "customer_id",
-    "email",
-    "country",
-    "signup_date",
-    "order_amount",
-    "currency",
-    "payment_method",
-    "order_status",
-    "product_category",
-    "quantity",
-    "discount_percent",
-    "last_login_date",
-]
+from app.intake.schemas import REQUIRED_COLUMNS, ImportOptions
 
 ALLOWED_COUNTRIES = {"DE", "FR", "IN", "US", "GB"}
 ALLOWED_CURRENCIES = {"EUR", "USD", "INR"}
@@ -213,3 +201,110 @@ def get_error_category(error: str) -> str:
         return "CSV Header"
 
     return "Other"
+
+
+def transform_row(row: Dict[str, str]) -> Dict[str, str]:
+    customer_id = (row.get("customer_id") or "").strip().upper()
+    email = (row.get("email") or "").strip().lower()
+    country = (row.get("country") or "").strip().upper()
+
+    signup_date_raw = (row.get("signup_date") or "").strip()
+    signup_date = datetime.strptime(signup_date_raw, "%Y-%m-%d").strftime("%Y-%m-%d")
+
+    order_amount_raw = (row.get("order_amount") or "").strip()
+    order_amount = f"{Decimal(order_amount_raw):.2f}"
+
+    currency = (row.get("currency") or "").strip().upper()
+    payment_method = (row.get("payment_method") or "").strip().lower()
+    order_status = (row.get("order_status") or "").strip().lower()
+    product_category = (row.get("product_category") or "").strip()
+
+    quantity_raw = (row.get("quantity") or "").strip()
+    quantity = str(int(quantity_raw))
+
+    discount_raw = (row.get("discount_percent") or "").strip()
+    discount_percent = f"{Decimal(discount_raw):.2f}"
+
+    last_login_date_raw = (row.get("last_login_date") or "").strip()
+    last_login_date = datetime.strptime(last_login_date_raw, "%Y-%m-%d").strftime(
+        "%Y-%m-%d"
+    )
+
+    return {
+        "customer_id": customer_id,
+        "email": email,
+        "country": country,
+        "signup_date": signup_date,
+        "order_amount": order_amount,
+        "currency": currency,
+        "payment_method": payment_method,
+        "order_status": order_status,
+        "product_category": product_category,
+        "quantity": quantity,
+        "discount_percent": discount_percent,
+        "last_login_date": last_login_date,
+    }
+
+
+def prepare_row(values, options: ImportOptions):
+    result = dict(values)
+    for field, rule in options.rules.items():
+        if rule.date_format and result.get(field):
+            try:
+                result[field] = datetime.strptime(
+                    result[field].strip(), rule.date_format
+                ).strftime("%Y-%m-%d")
+            except ValueError:
+                # Force base validation to reject a date in the wrong configured format.
+                result[field] = "invalid configured date format"
+    return result
+
+
+def row_errors(values, row_number, options: ImportOptions):
+    prepared = prepare_row(values, options)
+    errors = validate_row(prepared, row_number)
+    for field, rule in options.rules.items():
+        value = (values.get(field) or "").strip()
+        if (
+            rule.required
+            and not value
+            and not any(field in e and "required" in e for e in errors)
+        ):
+            errors.append(f"{field} is required by template")
+        if rule.allowed_values and value.casefold() not in {
+            v.strip().casefold() for v in rule.allowed_values
+        }:
+            errors.append(f"{field} is outside template allowed values")
+        if rule.minimum is not None or rule.maximum is not None:
+            try:
+                number = Decimal(value)
+                if number.is_finite():
+                    if rule.minimum is not None and number < Decimal(str(rule.minimum)):
+                        errors.append(
+                            f"{field} is below template minimum {rule.minimum}"
+                        )
+                    if rule.maximum is not None and number > Decimal(str(rule.maximum)):
+                        errors.append(
+                            f"{field} exceeds template maximum {rule.maximum}"
+                        )
+            except InvalidOperation:
+                pass  # Base validation already reports malformed numbers.
+    return errors, prepared
+
+
+def structured_issues(errors):
+    issues = []
+    for message in errors:
+        fields = [field for field in REQUIRED_COLUMNS if field in message]
+        if "currency mismatch" in message:
+            fields = ["country", "currency"]
+        if "zero amount" in message:
+            fields = ["order_amount", "order_status"]
+        issues.append(
+            {
+                "message": message,
+                "fields": fields,
+                "category": get_error_category(message),
+            }
+        )
+    return issues

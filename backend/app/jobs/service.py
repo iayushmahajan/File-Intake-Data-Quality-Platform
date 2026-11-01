@@ -6,9 +6,9 @@ from app.models.processing_job import (
     JobImport,
     ProcessingJob,
 )
-from app.schemas.imports import ImportOptions
-from app.schemas.job import UploadResponse
-from fastapi import Response
+from app.intake.schemas import ImportOptions
+from app.jobs.schemas import UploadResponse
+from fastapi import HTTPException, Response
 from sqlmodel import Session
 
 
@@ -63,3 +63,12 @@ def create_job(
         job_id=job.id,
         status_url=status_url,
     )
+
+
+def get_job_or_404(job_id: int, session: Session) -> ProcessingJob:
+    job = session.get(ProcessingJob, job_id)
+
+    if job is None:
+        raise HTTPException(status_code=404, detail="Job not found.")
+
+    return job

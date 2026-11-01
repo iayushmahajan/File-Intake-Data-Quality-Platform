@@ -98,6 +98,14 @@ export function RecordExplorer({
       controller.abort();
     };
   }, [job.id, query, reload]);
+  const resetFilters = () => {
+    setPage(1);
+    setStatus("all");
+    setSearch("");
+    setErrorCategory("");
+    setSort("row_number");
+    setDirection("asc");
+  };
   const changeCell = (field: string, value: string) => {
     if (!selected) return;
     setPatches((current) => {
@@ -247,6 +255,12 @@ export function RecordExplorer({
           </label>
         </div>
       </div>
+      <button
+        className="button-secondary mb-3"
+        onClick={resetFilters}
+      >
+        Reset Filters
+      </button>
       <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
         <details className="text-xs">
           <summary className="cursor-pointer">Visible columns</summary>

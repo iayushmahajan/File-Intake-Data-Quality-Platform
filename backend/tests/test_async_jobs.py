@@ -39,7 +39,7 @@ def detail(client, job_id):
     return client.get(f"/api/v1/jobs/{job_id}").json()
 
 
-def test_acceptance_precedes_work_and_survives_api_restart():
+def test_acceptance_precedes_work_and_survives_app_lifespan_restart():
     with TestClient(app) as client:
         job_id = submit(client)
         assert detail(client, job_id)["status"] == "pending"
@@ -182,7 +182,7 @@ def test_missing_workers_and_exhausted_leases_fail_clearly():
         assert "retry limit" in detail(client, job_id)["error_message"]
 
 
-def test_transient_io_retries_but_invalid_csv_does_not(monkeypatch):
+def test_transient_io_retries_until_execution_attempts_are_exhausted(monkeypatch):
     with TestClient(app) as client:
         job_id = submit(client)
 

@@ -1,4 +1,4 @@
-from app.services.validator import validate_csv_columns, validate_row
+from app.intake.validation import validate_csv_columns, validate_row
 
 VALID_COLUMNS = [
     "customer_id",

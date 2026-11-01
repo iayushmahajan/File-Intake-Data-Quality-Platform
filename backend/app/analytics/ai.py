@@ -2,7 +2,7 @@ import json
 from typing import Any, Dict
 
 from app.core.config import OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_MODEL
-from app.schemas.ai import AIReport
+from app.analytics.schemas import AIReport
 from openai import OpenAI
 from pydantic import ValidationError
 

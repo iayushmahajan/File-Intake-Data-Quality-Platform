@@ -1,5 +1,7 @@
+"""CSV-extension rejection and shared input for API/async tests."""
+
+import pytest
 from app.main import app
-from app.tasks import process_job_task
 from fastapi.testclient import TestClient
 
 VALID_CSV = (
@@ -8,98 +10,14 @@ VALID_CSV = (
     b"CUST-002,bob@example.com,IN,2026-04-03,89.99,INR,paypal,pending,clothing,1,5,2026-04-09\n"
 )
 
-INVALID_CSV = (
-    b"customer_id,email,country,signup_date,order_amount,currency,payment_method,order_status,product_category,quantity,discount_percent,last_login_date\n"
-    b"CUST-001,alice@example.com,DE,2026-04-01,125.50,EUR,card,completed,electronics,2,10,2026-04-10\n"
-    b",wrong-email,ZZ,01-04-2026,-20,BTC,cash,shipped,,0,150,wrong-date\n"
-    b"CUST-003,charlie@example.com,US,2026-04-05,50.00,USD,card,completed,home,1,0,2026-04-12\n"
-)
 
-
-def assert_readable_output_filename(filename: str, expected_marker: str) -> None:
-    assert filename.endswith(".csv")
-    assert expected_marker in filename
-
-
-def test_upload_csv_success() -> None:
+@pytest.mark.parametrize("path", ["/api/v1/uploads", "/api/v1/imports/preview"])
+def test_non_csv_upload_and_preview_are_rejected(path) -> None:
     with TestClient(app) as client:
         response = client.post(
-            "/api/v1/uploads",
-            files={"file": ("sample.csv", VALID_CSV, "text/csv")},
-        )
-
-    assert response.status_code == 202
-    data = response.json()
-    assert data["status"] == "pending"
-    process_job_task.apply(args=[data["job_id"]], throw=True)
-    with TestClient(app) as client:
-        detail = client.get(data["status_url"]).json()
-    data["processing_summary"] = {
-        **detail,
-        "cleaned_filename": detail["filename_cleaned"],
-        "error_filename": detail["filename_error_report"],
-    }
-
-    assert data["message"] == "Upload accepted for background processing."
-    assert data["original_filename"] == "sample.csv"
-    assert data["saved_filename"].endswith("_sample.csv")
-    assert data["processing_summary"]["total_rows"] == 2
-    assert data["processing_summary"]["valid_rows"] == 2
-    assert data["processing_summary"]["invalid_rows"] == 0
-
-    assert_readable_output_filename(
-        data["processing_summary"]["cleaned_filename"],
-        "_clean",
-    )
-    assert_readable_output_filename(
-        data["processing_summary"]["error_filename"],
-        "_errors",
-    )
-
-    assert isinstance(data["job_id"], int)
-
-
-def test_upload_csv_reject_non_csv() -> None:
-    with TestClient(app) as client:
-        response = client.post(
-            "/api/v1/uploads",
+            path,
             files={"file": ("sample.txt", b"hello", "text/plain")},
         )
 
     assert response.status_code == 400
     assert response.json() == {"detail": "Only CSV files are allowed."}
-
-
-def test_upload_csv_with_invalid_rows() -> None:
-    with TestClient(app) as client:
-        response = client.post(
-            "/api/v1/uploads",
-            files={"file": ("invalid_sample.csv", INVALID_CSV, "text/csv")},
-        )
-
-    assert response.status_code == 202
-    data = response.json()
-    assert data["status"] == "pending"
-    process_job_task.apply(args=[data["job_id"]], throw=True)
-    with TestClient(app) as client:
-        detail = client.get(data["status_url"]).json()
-    data["processing_summary"] = {
-        **detail,
-        "cleaned_filename": detail["filename_cleaned"],
-        "error_filename": detail["filename_error_report"],
-    }
-
-    assert data["processing_summary"]["total_rows"] == 3
-    assert data["processing_summary"]["valid_rows"] == 2
-    assert data["processing_summary"]["invalid_rows"] == 1
-
-    assert_readable_output_filename(
-        data["processing_summary"]["cleaned_filename"],
-        "_clean",
-    )
-    assert_readable_output_filename(
-        data["processing_summary"]["error_filename"],
-        "_errors",
-    )
-
-    assert isinstance(data["job_id"], int)

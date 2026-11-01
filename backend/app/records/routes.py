@@ -9,37 +9,19 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
 from sqlalchemy import func
 from sqlmodel import Session, select
 
-from app.api.routes.jobs import get_job_or_404
+from app.jobs.service import create_job, get_job_or_404
 from app.core.config import INPUT_DIR, MAX_UPLOAD_BYTES
 from app.core.db import engine, get_session
 from app.models.processing_job import JobImport, JobRecord
-from app.schemas.imports import CorrectionRequest, ImportOptions
-from app.schemas.job import UploadResponse
-from app.services.import_config import row_errors, structured_issues
-from app.services.job_creation import create_job
-from app.services.validator import REQUIRED_COLUMNS
+from app.intake.schemas import REQUIRED_COLUMNS, ImportOptions
+from app.records.schemas import CorrectionRequest, RecordPage, RecordResponse
+from app.jobs.schemas import UploadResponse
+from app.intake.validation import row_errors, structured_issues
 
 router = APIRouter(prefix="/api/v1/jobs", tags=["records"])
-
-
-class RecordResponse(BaseModel):
-    row_number: int
-    status: str
-    values: dict[str, str]
-    normalized: dict[str, str]
-    issues: list[dict]
-
-
-class RecordPage(BaseModel):
-    records: list[RecordResponse]
-    total: int
-    page: int
-    page_size: int
-    fields: list[str]
 
 
 def require_records(job_id, session):

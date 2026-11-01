@@ -1,18 +1,21 @@
 import csv
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, UploadFile
 from pydantic import ValidationError
 from sqlalchemy import update
 from sqlmodel import Session, select
 
 from app.core.db import get_session
 from app.models.processing_job import ImportTemplate
-from app.schemas.imports import ImportOptions, TemplateWrite
-from app.services.import_config import inspect_csv
+from app.intake.schemas import ImportOptions, TemplateWrite
+from app.intake.mapping import check_mapping, inspect_csv
+from app.jobs.schemas import UploadResponse
+from app.jobs.service import create_job
 from app.utils.file_io import save_upload_file
 
-router = APIRouter(prefix="/api/v1/imports", tags=["imports"])
+imports_router = APIRouter(prefix="/api/v1/imports", tags=["imports"])
+uploads_router = APIRouter(prefix="/api/v1/uploads", tags=["uploads"])
 
 
 def parse_options(value):
@@ -39,7 +42,7 @@ def resolve_options(options, session):
     return options
 
 
-@router.post("/preview")
+@imports_router.post("/preview")
 def preview(
     file: UploadFile = File(...),
     import_options: str | None = Form(None),
@@ -61,14 +64,14 @@ def preview(
         path.unlink(missing_ok=True)
 
 
-@router.get("/templates")
+@imports_router.get("/templates")
 def templates(session: Session = Depends(get_session)):
     return session.exec(
         select(ImportTemplate).order_by(ImportTemplate.name, ImportTemplate.id)
     ).all()
 
 
-@router.post("/templates", status_code=201)
+@imports_router.post("/templates", status_code=201)
 def save_template(body: TemplateWrite, session: Session = Depends(get_session)):
     name = body.name.strip()
     if not name or not body.options.mapping:
@@ -83,7 +86,7 @@ def save_template(body: TemplateWrite, session: Session = Depends(get_session)):
     return template
 
 
-@router.put("/templates/{template_id}")
+@imports_router.put("/templates/{template_id}")
 def update_template(
     template_id: int, body: TemplateWrite, session: Session = Depends(get_session)
 ):
@@ -118,3 +121,33 @@ def update_template(
         )
     session.commit()
     return session.get(ImportTemplate, template_id)
+
+
+@uploads_router.post("", response_model=UploadResponse, status_code=202)
+def upload_csv(
+    response: Response,
+    file: UploadFile = File(...),
+    import_options: str | None = Form(None),
+    session: Session = Depends(get_session),
+):
+    if not file.filename:
+        raise HTTPException(400, "No file provided.")
+    if not file.filename.lower().endswith(".csv"):
+        raise HTTPException(400, "Only CSV files are allowed.")
+    options = resolve_options(parse_options(import_options), session)
+    filename, path = save_upload_file(file)
+    if options.mapping:
+        try:
+            with path.open(newline="", encoding="utf-8-sig") as handle:
+                check_mapping(next(csv.reader(handle, strict=True), []), options)
+        except (ValueError, UnicodeError, csv.Error) as error:
+            path.unlink(missing_ok=True)
+            raise HTTPException(422, str(error)) from error
+    return create_job(
+        session,
+        response,
+        file.filename.replace("\\", "/").split("/")[-1],
+        filename,
+        path,
+        options,
+    )

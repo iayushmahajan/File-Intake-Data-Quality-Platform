@@ -4,21 +4,17 @@ from pathlib import Path
 
 from app.core.config import OUTPUT_DIR
 from app.core.logging import get_logger
-from app.schemas.imports import ImportOptions
-from app.services.analyzer import analyze_processed_data
-from app.services.import_config import (
-    canonical_row,
-    check_mapping,
+from app.intake.schemas import REQUIRED_COLUMNS, ImportOptions
+from app.analytics.analysis import analyze_processed_data
+from app.intake.validation import (
+    get_error_category,
     row_errors,
     structured_issues,
-)
-from app.services.report_generator import write_cleaned_csv, write_error_csv
-from app.services.transformer import transform_row
-from app.services.validator import (
-    REQUIRED_COLUMNS,
-    get_error_category,
+    transform_row,
     validate_csv_columns,
 )
+from app.intake.mapping import canonical_row, check_mapping
+from app.intake.exports import write_cleaned_csv, write_error_csv
 
 logger = get_logger(__name__)
 
@@ -242,7 +238,7 @@ def process_csv_file(
         error_breakdown=error_breakdown,
     )
 
-    from app.services.quality import calculate_quality
+    from app.analytics.analysis import calculate_quality
 
     for anomaly in analysis["anomalies"]:
         anomaly["row"] = source_rows[anomaly["row"] - 1]
