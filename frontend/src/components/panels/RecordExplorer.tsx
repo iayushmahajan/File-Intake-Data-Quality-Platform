@@ -19,11 +19,13 @@ export function RecordExplorer({
   category = "",
   categoryChange = 0,
   onCreated,
+  onDraftChange,
 }: {
   job: Pick<JobDetail, "id" | "error_breakdown">;
   category?: string;
   categoryChange?: number;
   onCreated?: (id: number) => void;
+  onDraftChange?: (hasDrafts: boolean) => void;
 }) {
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState("all");
@@ -50,7 +52,17 @@ export function RecordExplorer({
   const [busy, setBusy] = useState(false);
   const [child, setChild] = useState<number | null>(null);
   const editor = useRef<HTMLDivElement>(null);
+  const active = useRef(false);
+  useEffect(() => {
+    // ResultsPanel keys each explorer by job; navigation ends this instance's lifetime.
+    active.current = true;
+    return () => { active.current = false; };
+  }, []);
   const draftCount = Object.keys(patches).length;
+  useEffect(() => {
+    onDraftChange?.(draftCount > 0);
+    return () => onDraftChange?.(false);
+  }, [draftCount, onDraftChange]);
   useEffect(() => {
     setErrorCategory(category);
     setPage(1);
@@ -150,15 +162,19 @@ export function RecordExplorer({
           body: JSON.stringify({ patches }),
         },
       );
+      // The child stays saved, but a departed workspace must not notify or navigate.
+      if (!active.current) return;
       setChild(result.job_id);
       setPatches({});
       setValidation(null);
       setSelected(null);
+      // Submission has saved these changes before navigation to the child job.
+      onDraftChange?.(false);
       onCreated?.(result.job_id);
     } catch (failure) {
-      setError((failure as Error).message);
+      if (active.current) setError((failure as Error).message);
     } finally {
-      setBusy(false);
+      if (active.current) setBusy(false);
     }
   };
   const selectedIssues = selected
