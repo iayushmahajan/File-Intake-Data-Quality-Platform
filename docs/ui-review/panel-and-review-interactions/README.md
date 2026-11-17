@@ -24,20 +24,14 @@ An untouched form closes directly. A modified form switches the same modal to a 
 
 Browser Back cancellation restored the same form, input and modal focus. Next-case navigation was blocked while dirty and succeeded after explicit local discard. A focus-restoration handoff was corrected so the navigation warning cannot move focus outside a resumed review dialog. Only one modal is present during either warning.
 
-## Screenshot index
+## Retained screenshots and interaction evidence
 
-| Screenshot | Viewport / state |
-|---|---|
-| [Default source panel](desktop-source-default.png) | 1440×900, 1060px panel |
-| [Wider source panel](desktop-source-wider.png) | Actual left-edge drag to 1236px |
-| [Narrower source panel](desktop-source-narrower.png) | Actual drag to 680px; all four columns visible |
-| [Scrolled to source pager](desktop-source-scrolled-pager.png) | Actual wheel scrolling to bottom |
-| [Review dialog](desktop-review-dialog.png) | Context, values, unresolved action and form |
-| [Unsaved review warning](desktop-unsaved-warning.png) | Single-modal Continue / Keep / Discard choice |
-| [Mobile source panel](mobile-source-panel.png) | 390×844, full-screen compact source records |
-| [Expanded mobile source](mobile-expanded-source.png) | Exact original value, interpretation and provenance |
-| [Mobile review dialog](mobile-review-dialog.png) | 390×844 |
-| [Narrow review dialog](narrow-320-review-dialog.png) | 320×844; inner scroll reaches Save |
+The curated [product collection](../../screenshots/product/README.md) retains the
+[default source panel](../../screenshots/product/source-evidence.png) and
+[review dialog](../../screenshots/product/human-review-dialog.png), unchanged from this run.
+Supplemental width, scroll-position and mobile captures were retired during repository
+housekeeping; their interaction measurements and conclusions remain below and in the JSON.
+Historical PNGs remain recoverable at commit `e406204`.
 
 Machine-readable evidence: [interaction results](interaction-results.json), [navigation results](navigation-results.json).
 

@@ -48,41 +48,41 @@ Raw benchmark CSVs and clean-reference files are not included in this repository
 
 **Dataset overview** — import status, record counts and overlapping findings.
 
-![Flights dataset overview](docs/ui-review/layout-and-contextual-details/desktop-overview.png)
+![Flights dataset overview](docs/screenshots/product/dataset-overview.png)
 
 **Cases table** — find an individual flight/time-field case without opening all its evidence.
 
-![Filtered Flights cases table](docs/ui-review/layout-and-contextual-details/desktop-cases.png)
+![Filtered Flights cases table](docs/screenshots/product/cases-table.png)
 
 <details>
 <summary>Focused case investigation</summary>
 
-![Focused case with reported-value comparison](docs/ui-review/layout-and-contextual-details/desktop-case-default.png)
+![Focused case with reported-value comparison](docs/screenshots/product/focused-case.png)
 
 </details>
 
 <details>
 <summary>Source evidence panel</summary>
 
-![Source evidence with original and interpreted values](docs/ui-review/panel-and-review-interactions/desktop-source-default.png)
+![Source evidence with original and interpreted values](docs/screenshots/product/source-evidence.png)
 
 </details>
 
 <details>
 <summary>Human review dialog</summary>
 
-![Human review dialog with reported values and unresolved option](docs/ui-review/panel-and-review-interactions/desktop-review-dialog.png)
+![Human review dialog with reported values and unresolved option](docs/screenshots/product/human-review-dialog.png)
 
 </details>
 
 <details>
 <summary>Mobile investigation</summary>
 
-<img src="docs/ui-review/layout-and-contextual-details/mobile-case-default.png" alt="Mobile focused investigation with case navigation and reported values" width="390" />
+<img src="docs/screenshots/product/mobile-investigation.png" alt="Mobile focused investigation with case navigation and reported values" width="390" />
 
 </details>
 
-[Layout verification gallery](docs/ui-review/layout-and-contextual-details/README.md) ·
+[Layout verification findings](docs/ui-review/layout-and-contextual-details/README.md) ·
 [Scrolling, resizing and review-dialog verification](docs/ui-review/panel-and-review-interactions/README.md)
 
 ## Architecture

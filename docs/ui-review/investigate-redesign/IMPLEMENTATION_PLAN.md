@@ -129,7 +129,7 @@ Use the running `http://localhost:5174` and actual `http://127.0.0.1:8011`. No i
 8. Read existing History/Datasets and frozen-export history; do not upload, create exports, download artifacts unnecessarily, or manufacture records.
 9. Repeat key views at 390×844 and a 320px stress width. Inspect focus, reduced motion, contained scrolling and critical alerts.
 
-Record before/after imports and existing AI/review/export counts using read-only checks. Observe request methods and stop if a navigation/read interaction unexpectedly emits a mutation. Capture to a **new** review folder per approved checkpoint; preserve `docs/ui-review/live-workflow/` as the unchanged before-state. This planning run creates no new screenshots or synthetic product states.
+Record before/after imports and existing AI/review/export counts using read-only checks. Observe request methods and stop if a navigation/read interaction unexpectedly emits a mutation. Capture to a **new** review folder per approved checkpoint; preserve the original before-state in Git history; the retained [audit findings](../live-workflow/SCREENSHOT_INDEX.md) summarize its retired screenshots. This planning run creates no new screenshots or synthetic product states.
 
 ### Visual gates
 

@@ -1,13 +1,12 @@
-# Application screenshots
+# Screenshots and brand provenance
 
-Captured from the running local application on 2026-11-12T19:39:45.691Z.
-Desktop viewport: 1440 × 900; full-page PNGs, including content below the fold.
-Pages show their actual default state without injected fixtures or selected dataset context.
+The [product collection](product/README.md) contains the six current README screenshots.
+They are genuine read-only captures of the local application, not generated mockups.
 
-- [Home](01-home.png) — `/`
-- [Datasets](02-datasets.png) — `/datasets`
-- [Investigate](03-investigate.png) — `/investigate`
-- [History](04-history.png) — `/history`
-- [Legacy transactions](05-legacy-transactions.png) — `/legacy/transactions`
+The original approved `ChatGPT Image Nov 12, 2026, 09_14_34 PM.png` is retained as the
+source reference for the [production brand assets](../../frontend/public/brand/README.md).
+It is not a duplicate application screenshot and is intentionally outside the product gallery.
 
-No uploads, AI requests or review decisions were submitted.
+Intermediate captures have been retired from the active branch. Historical verification
+findings remain in [UI review](../ui-review/README.md); original images are recoverable through
+Git history at commit `e406204`. No research reference answers or raw benchmark CSVs are included.

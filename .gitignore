@@ -29,6 +29,6 @@ backend/data/*.db
 **/dirty.csv
 **/clean.csv
 
-# Local download metadata and duplicate screenshot archive (retain on disk).
+# Keep local download metadata and duplicate screenshot archives out of Git.
 *:Zone.Identifier
 /docs/ui-review/live-workflow.zip

@@ -2,6 +2,8 @@
 
 2026-11-16 · Reconcile Workbench · real dataset 5 · Chromium, reduced motion enabled.
 
+Historical verification report. The later [panel/review interaction refinement](../panel-and-review-interactions/README.md) supersedes the inline review-form behavior described here.
+
 ## Layout before and after
 
 The existing 1280px workspace container is now the single outer-width rule for Datasets, Overview, Cases, focused cases, All Source Records and History. Header/footer use the same width/gutters; Home retains its editorial composition. The page gutter is `clamp(1rem, 3vw, 2.5rem)` and panels reuse the shared section padding. Reading paragraphs remain bounded; Overview retains its dark metric cells and separate Sage findings surface.
@@ -35,31 +37,16 @@ The review form stays **inline and mounted**, so reported values remain availabl
 
 Windows have visible titles, selected flight/field context, a persistent Close control, Escape dismissal, native modal focus trapping/background protection and a single vertical scrolling body. Close restores trigger focus without moving the main page. Source paging controls are reachable and do not cover content. Overlays do not add URL parameters/history entries. A clean route change exits the old case; a blocked transition closes read-only details before displaying the unsaved-review guard. Browser reload/unload protection remains best effort.
 
-## Screenshot index
+## Curated screenshots
 
-Desktop images use 1440×900; mobile images 390×844; the explicitly narrow overview uses 320×844. Default-case images are full-page; other captures show the actual viewport and modal boundaries.
-
-| Screenshot | Actual state |
-|---|---|
-| [Datasets](desktop-datasets.png) | Existing upload view, aligned outer container; no file selected/uploaded. |
-| [Overview](desktop-overview.png) | Real dataset totals and original dark/Sage hierarchy. |
-| [Cases](desktop-cases.png) | Actual-departure conflict filter, 98 matching cases. |
-| [Focused case](desktop-case-default.png) | AA-1007-MIA-PHX / actual departure; main values remain visible. |
-| [Source sheet](desktop-source-sheet.png) | Actual claims with source/raw/normalization/limitations columns. |
-| [Candidate sheet](desktop-candidate-sheet.png) | 17:08, supporting and conflicting source relationships. |
-| [Initial assessment](desktop-initial-assessment.png) | Non-authoritative deterministic baseline, not a correction. |
-| [AI assessment](desktop-ai-assessment.png) | Genuine not-requested state; no fabricated AI answer. |
-| [Inline review](desktop-review-area.png) | Empty unresolved form, not submitted. |
-| [Review history](desktop-review-history.png) | Genuine empty history, compact window. |
-| [All source records](desktop-source-records.png) | Existing import-5 records browser, shared page width. |
-| [History](desktop-history.png) | Actual import discovery and existing data. No export created. |
-| [Mobile case](mobile-case-default.png) | Same case, complete collapsed main page. |
-| [Mobile source sheet](mobile-source-sheet.png) | Full-screen detail view with persistent Close. |
-| [Expanded source](mobile-expanded-source.png) | Exact original and interpreted values, observation identity and limitations. |
-| [Mobile candidate evidence](mobile-candidate-sheet.png) | Selected 17:09 source comparison in a full-screen sheet. |
-| [Mobile inline review](mobile-review-form.png) | Real action/attribution/rationale controls; no decision submitted. |
-| [Mobile history](mobile-review-history.png) | Actual empty history, not synthetic events. |
-| [Narrow layout](narrow-layout.png) | 320px Overview alignment. Full-screen source evidence was also checked at 320px. |
+Original desktop captures used 1440×900 and mobile 390×844. The byte-identical final
+[Overview](../../screenshots/product/dataset-overview.png),
+[Cases](../../screenshots/product/cases-table.png),
+[focused case](../../screenshots/product/focused-case.png) and
+[mobile investigation](../../screenshots/product/mobile-investigation.png) now live in the
+[product collection](../../screenshots/product/README.md).
+Supplemental layout/window screenshots were retired; the measurements and interaction results
+in this report remain. Historical images are recoverable at commit `e406204`.
 
 ## Verification
 

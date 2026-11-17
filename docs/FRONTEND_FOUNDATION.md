@@ -280,4 +280,4 @@ badges. The accessible mobile Dialog and correction-draft guards remain. Home no
 one Flights-scoped paragraph and one action. Datasets keeps required columns visible beside upload;
 Investigate retains full evidence with its longer summary in the existing metadata disclosure. History
 uses concise task copy. The footer contains only the product name. See `../frontend/public/brand/README.md`
-for asset provenance and `screenshots/refinement-2026-11-13/README.md` for rendered QA evidence.
+for asset provenance and [historical refinement findings](screenshots/refinement-2026-11-13/README.md) for QA conclusions. Current images are in the [product gallery](screenshots/product/README.md).
