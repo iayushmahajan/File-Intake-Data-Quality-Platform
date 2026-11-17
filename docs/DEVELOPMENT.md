@@ -1,8 +1,8 @@
-# Development reference
+# Legacy transaction development reference
 
 For column mapping, saved templates, record exploration and correction workflows, see the [import workspace guide](IMPORT_WORKSPACE.md).
 
-Detailed configuration, CSV rules and local Python setup for the File Intake & Data Quality Platform. For the Docker quick start, see the [README](../README.md).
+This preserves transaction-specific configuration, CSV rules and local Python setup. The current Flights product and contracts are in the [README](../README.md). API startup applies migrations: follow the [backup and rollout gates](HANDOFF.md) before executing startup commands against any existing storage.
 
 ## CSV schema and validation
 

@@ -81,3 +81,9 @@ it("preserves successful JSON responses and forwards request options", async () 
   await expect(api("/api/v1/uploads", options)).resolves.toEqual({ job_id: 4 });
   expect(fetch).toHaveBeenCalledWith(`${API_BASE_URL}/api/v1/uploads`, options);
 });
+
+it("preserves the Flights structured intake issue without echoing diagnostic metadata", async () => {
+  errorResponse({ code: "evaluation_reference", field: null, row_number: null,
+    message: "This evaluation reference snapshot cannot be imported.", input: "private-value", ctx: { secret: "never echo" } });
+  await expect(api("/api/v1/flights/uploads")).rejects.toThrow(/^This evaluation reference snapshot cannot be imported\.$/);
+});

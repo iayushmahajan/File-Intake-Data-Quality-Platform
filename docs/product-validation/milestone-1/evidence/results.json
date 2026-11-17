@@ -1,0 +1,707 @@
+{
+  "passed": true,
+  "database": "/tmp/file-intake-tests-ayazlfd0/tests.db",
+  "existing_database_reused": true,
+  "database_created": false,
+  "migration_executed": false,
+  "storage": "/tmp/file-intake-tests-ayazlfd0/product-validation-m1",
+  "broker": "memory://",
+  "queue": "product-validation-m1",
+  "transport": "in-process TestClient; no lifespan/network",
+  "fixture_sha256": "bafbefd3e1dbd35096517893345a1cf9c54f71194e46846229ed8fda2c536713",
+  "observation_sha256_before": "79059d04649504d0c1cfe1d614360ef7adf3f882aeebc7fd3b1fde887f83b2c2",
+  "observation_sha256_after": "79059d04649504d0c1cfe1d614360ef7adf3f882aeebc7fd3b1fde887f83b2c2",
+  "job_id": 1,
+  "cases": {
+    "A": {
+      "discrepancy_id": "fld_d283d14cf8f8a63f2e28ce039b7f7ef394dc24861b43e5290594e39d6a6d4c08",
+      "job_id": 1,
+      "flight": "ZZ-100-AAA-BBB",
+      "field": "act_dep_time",
+      "observation_count": 3,
+      "usable_source_count": 2,
+      "counts": {
+        "parsed": 3,
+        "missing": 0,
+        "placeholder": 0,
+        "ambiguous": 0,
+        "unsupported": 0
+      },
+      "flags": {
+        "confirmed_conflict": true,
+        "has_missing": false,
+        "has_placeholders": false,
+        "has_ambiguous": false,
+        "has_unsupported": false,
+        "formatting_variation": false,
+        "incomparable_supported_values": false,
+        "unusable_source_identity": false,
+        "internal_source_conflict": false,
+        "insufficient_support": false
+      },
+      "claims": [
+        {
+          "tuple_id": "pv-a-1",
+          "row_number": 2,
+          "src": "source-a",
+          "source_usable": true,
+          "normalization": {
+            "raw": "17:08",
+            "status": "parsed",
+            "canonical_clock": "17:08",
+            "precision": "minute",
+            "qualifiers": [],
+            "reason": null,
+            "policy_version": "flight_time_normalization_v1"
+          },
+          "identity_issues": []
+        },
+        {
+          "tuple_id": "pv-a-2",
+          "row_number": 3,
+          "src": "source-b",
+          "source_usable": true,
+          "normalization": {
+            "raw": "17:09",
+            "status": "parsed",
+            "canonical_clock": "17:09",
+            "precision": "minute",
+            "qualifiers": [],
+            "reason": null,
+            "policy_version": "flight_time_normalization_v1"
+          },
+          "identity_issues": []
+        },
+        {
+          "tuple_id": "pv-a-3",
+          "row_number": 4,
+          "src": "source-b",
+          "source_usable": true,
+          "normalization": {
+            "raw": "17:09",
+            "status": "parsed",
+            "canonical_clock": "17:09",
+            "precision": "minute",
+            "qualifiers": [],
+            "reason": null,
+            "policy_version": "flight_time_normalization_v1"
+          },
+          "identity_issues": []
+        }
+      ],
+      "candidates": [
+        {
+          "candidate_id": "cand_38e8e77edea84955b692ebbdd5d332a37e932d0b2c9468fdb5e4e637eb8c6d09",
+          "canonical_clock": "17:08",
+          "precision": "minute",
+          "qualifiers": [],
+          "raw_values": [
+            "17:08"
+          ],
+          "supporting_observation_ids": [
+            "pv-a-1"
+          ],
+          "supporting_source_ids": [
+            "source-a"
+          ],
+          "observation_support_count": 1,
+          "distinct_source_support_count": 1,
+          "contradicting_candidate_ids": [
+            "cand_0259d3f9f88e98e76ef2d2159163026e4037e2dee699e5ad2074a78dc2d8046f"
+          ],
+          "contradicting_observation_ids": [
+            "pv-a-2",
+            "pv-a-3"
+          ],
+          "incomparable_candidate_ids": [],
+          "context_observation_ids": [],
+          "detection_policy": "flight_discrepancy_v1",
+          "normalization_policy": "flight_time_normalization_v1"
+        },
+        {
+          "candidate_id": "cand_0259d3f9f88e98e76ef2d2159163026e4037e2dee699e5ad2074a78dc2d8046f",
+          "canonical_clock": "17:09",
+          "precision": "minute",
+          "qualifiers": [],
+          "raw_values": [
+            "17:09"
+          ],
+          "supporting_observation_ids": [
+            "pv-a-2",
+            "pv-a-3"
+          ],
+          "supporting_source_ids": [
+            "source-b"
+          ],
+          "observation_support_count": 2,
+          "distinct_source_support_count": 1,
+          "contradicting_candidate_ids": [
+            "cand_38e8e77edea84955b692ebbdd5d332a37e932d0b2c9468fdb5e4e637eb8c6d09"
+          ],
+          "contradicting_observation_ids": [
+            "pv-a-1"
+          ],
+          "incomparable_candidate_ids": [],
+          "context_observation_ids": [],
+          "detection_policy": "flight_discrepancy_v1",
+          "normalization_policy": "flight_time_normalization_v1"
+        }
+      ],
+      "candidate_state": "supported_candidates",
+      "internally_inconsistent_source_ids": [],
+      "baseline": {
+        "status": "abstain",
+        "candidate_id": null,
+        "abstention_reasons": [
+          "tied_source_support"
+        ],
+        "policy_version": "flight_source_support_baseline_v1",
+        "authoritative": false
+      },
+      "requires_attention": true,
+      "summary": "3 observations; 2 usable source IDs; 2 supported clock candidates; 0 missing; 0 unavailable; 0 ambiguous; 0 unsupported. Confirmed comparable clock disagreement.",
+      "evidence_digest": "sha256:a3b1cb97bd303b84deecd783f0b861214752dc76653b607efe6d6e03755f2e54",
+      "detection_policy": "flight_discrepancy_v1",
+      "normalization_policy": "flight_time_normalization_v1"
+    },
+    "B": {
+      "discrepancy_id": "fld_9f98ed76eb47a0ec89eb4c35e8116c4602f3ce16882a528c9d2c7a92b5352b74",
+      "job_id": 1,
+      "flight": "ZZ-200-CCC-DDD",
+      "field": "act_arr_time",
+      "observation_count": 2,
+      "usable_source_count": 2,
+      "counts": {
+        "parsed": 0,
+        "missing": 1,
+        "placeholder": 1,
+        "ambiguous": 0,
+        "unsupported": 0
+      },
+      "flags": {
+        "confirmed_conflict": false,
+        "has_missing": true,
+        "has_placeholders": true,
+        "has_ambiguous": false,
+        "has_unsupported": false,
+        "formatting_variation": false,
+        "incomparable_supported_values": false,
+        "unusable_source_identity": false,
+        "internal_source_conflict": false,
+        "insufficient_support": false
+      },
+      "claims": [
+        {
+          "tuple_id": "pv-b-1",
+          "row_number": 5,
+          "src": "source-a",
+          "source_usable": true,
+          "normalization": {
+            "raw": "",
+            "status": "missing",
+            "canonical_clock": null,
+            "precision": null,
+            "qualifiers": [],
+            "reason": "No source value was supplied.",
+            "policy_version": "flight_time_normalization_v1"
+          },
+          "identity_issues": []
+        },
+        {
+          "tuple_id": "pv-b-2",
+          "row_number": 6,
+          "src": "source-b",
+          "source_usable": true,
+          "normalization": {
+            "raw": "Not Available",
+            "status": "placeholder",
+            "canonical_clock": null,
+            "precision": null,
+            "qualifiers": [
+              "not_available"
+            ],
+            "reason": "The source explicitly reports unavailable information.",
+            "policy_version": "flight_time_normalization_v1"
+          },
+          "identity_issues": []
+        }
+      ],
+      "candidates": [],
+      "candidate_state": "no_supported_candidate",
+      "internally_inconsistent_source_ids": [],
+      "baseline": {
+        "status": "abstain",
+        "candidate_id": null,
+        "abstention_reasons": [
+          "no_supported_candidate"
+        ],
+        "policy_version": "flight_source_support_baseline_v1",
+        "authoritative": false
+      },
+      "requires_attention": true,
+      "summary": "2 observations; 2 usable source IDs; 0 supported clock candidates; 1 missing; 1 unavailable; 0 ambiguous; 0 unsupported. No confirmed comparable clock disagreement.",
+      "evidence_digest": "sha256:b4e0918c26007bc4174cdbc696568f1017e6cc4d7b59725e2d7b2086aa0c7f12",
+      "detection_policy": "flight_discrepancy_v1",
+      "normalization_policy": "flight_time_normalization_v1"
+    },
+    "C": {
+      "discrepancy_id": "fld_4c5f79d189c8ed833e2a3ab13703b0bb7c8ae37b4e9e38440099fbc6f5f102f6",
+      "job_id": 1,
+      "flight": "ZZ-300-EEE-FFF",
+      "field": "sched_dep_time",
+      "observation_count": 2,
+      "usable_source_count": 2,
+      "counts": {
+        "parsed": 2,
+        "missing": 0,
+        "placeholder": 0,
+        "ambiguous": 0,
+        "unsupported": 0
+      },
+      "flags": {
+        "confirmed_conflict": false,
+        "has_missing": false,
+        "has_placeholders": false,
+        "has_ambiguous": false,
+        "has_unsupported": false,
+        "formatting_variation": true,
+        "incomparable_supported_values": false,
+        "unusable_source_identity": false,
+        "internal_source_conflict": false,
+        "insufficient_support": false
+      },
+      "claims": [
+        {
+          "tuple_id": "pv-c-1",
+          "row_number": 7,
+          "src": "source-a",
+          "source_usable": true,
+          "normalization": {
+            "raw": "9:00 AM",
+            "status": "parsed",
+            "canonical_clock": "09:00",
+            "precision": "minute",
+            "qualifiers": [],
+            "reason": null,
+            "policy_version": "flight_time_normalization_v1"
+          },
+          "identity_issues": []
+        },
+        {
+          "tuple_id": "pv-c-2",
+          "row_number": 8,
+          "src": "source-b",
+          "source_usable": true,
+          "normalization": {
+            "raw": "09:00 a.m.",
+            "status": "parsed",
+            "canonical_clock": "09:00",
+            "precision": "minute",
+            "qualifiers": [],
+            "reason": null,
+            "policy_version": "flight_time_normalization_v1"
+          },
+          "identity_issues": []
+        }
+      ],
+      "candidates": [
+        {
+          "candidate_id": "cand_0805ea184a3bb5c11fc8a276479995b50c375027d0ad54b1cfff45cc9d5cfff7",
+          "canonical_clock": "09:00",
+          "precision": "minute",
+          "qualifiers": [],
+          "raw_values": [
+            "09:00 a.m.",
+            "9:00 AM"
+          ],
+          "supporting_observation_ids": [
+            "pv-c-1",
+            "pv-c-2"
+          ],
+          "supporting_source_ids": [
+            "source-a",
+            "source-b"
+          ],
+          "observation_support_count": 2,
+          "distinct_source_support_count": 2,
+          "contradicting_candidate_ids": [],
+          "contradicting_observation_ids": [],
+          "incomparable_candidate_ids": [],
+          "context_observation_ids": [],
+          "detection_policy": "flight_discrepancy_v1",
+          "normalization_policy": "flight_time_normalization_v1"
+        }
+      ],
+      "candidate_state": "supported_candidates",
+      "internally_inconsistent_source_ids": [],
+      "baseline": {
+        "status": "proposal",
+        "candidate_id": "cand_0805ea184a3bb5c11fc8a276479995b50c375027d0ad54b1cfff45cc9d5cfff7",
+        "abstention_reasons": [],
+        "policy_version": "flight_source_support_baseline_v1",
+        "authoritative": false
+      },
+      "requires_attention": false,
+      "summary": "2 observations; 2 usable source IDs; 1 supported clock candidates; 0 missing; 0 unavailable; 0 ambiguous; 0 unsupported. No confirmed comparable clock disagreement.",
+      "evidence_digest": "sha256:ec8e12ca1bf10191bc30d16a4c0f51fdae4f6dc65b8298a770d044432bb88c8a",
+      "detection_policy": "flight_discrepancy_v1",
+      "normalization_policy": "flight_time_normalization_v1"
+    }
+  },
+  "decisions": [
+    {
+      "id": "7c3b181ce2264ee198b23c28277f678d",
+      "request_id": "42122194cb6d45d29478fbb8274b51fb",
+      "job_id": 1,
+      "discrepancy_id": "fld_4c5f79d189c8ed833e2a3ab13703b0bb7c8ae37b4e9e38440099fbc6f5f102f6",
+      "flight": "ZZ-300-EEE-FFF",
+      "field": "sched_dep_time",
+      "evidence_digest": "sha256:ec8e12ca1bf10191bc30d16a4c0f51fdae4f6dc65b8298a770d044432bb88c8a",
+      "revision": 1,
+      "action": "override",
+      "candidate_id": "cand_0805ea184a3bb5c11fc8a276479995b50c375027d0ad54b1cfff45cc9d5cfff7",
+      "investigation_id": null,
+      "manual_value": null,
+      "resolution": {
+        "origin": "observed_candidate",
+        "canonical_clock": "09:00",
+        "precision": "minute",
+        "qualifiers": [],
+        "supporting_observation_ids": [
+          "pv-c-1",
+          "pv-c-2"
+        ],
+        "supporting_source_ids": [
+          "source-a",
+          "source-b"
+        ]
+      },
+      "rationale": "Synthetic fixture: both source spellings support 09:00; evidence-supported judgment, not independently verified historical truth.",
+      "reviewer_label": "Synthetic validation reviewer",
+      "policy_version": "flight_human_review_v1",
+      "normalization_policy": "flight_time_normalization_v1",
+      "detection_policy": "flight_discrepancy_v1",
+      "created_at": "2026-11-16T11:39:19.170516"
+    },
+    {
+      "id": "55de373feed240c1a92b323f552bfaec",
+      "request_id": "58a832990c8d4b2ca3f2e371b780b87a",
+      "job_id": 1,
+      "discrepancy_id": "fld_4c5f79d189c8ed833e2a3ab13703b0bb7c8ae37b4e9e38440099fbc6f5f102f6",
+      "flight": "ZZ-300-EEE-FFF",
+      "field": "sched_dep_time",
+      "evidence_digest": "sha256:ec8e12ca1bf10191bc30d16a4c0f51fdae4f6dc65b8298a770d044432bb88c8a",
+      "revision": 2,
+      "action": "override",
+      "candidate_id": "cand_0805ea184a3bb5c11fc8a276479995b50c375027d0ad54b1cfff45cc9d5cfff7",
+      "investigation_id": null,
+      "manual_value": null,
+      "resolution": {
+        "origin": "observed_candidate",
+        "canonical_clock": "09:00",
+        "precision": "minute",
+        "qualifiers": [],
+        "supporting_observation_ids": [
+          "pv-c-1",
+          "pv-c-2"
+        ],
+        "supporting_source_ids": [
+          "source-a",
+          "source-b"
+        ]
+      },
+      "rationale": "Re-review confirms the same source-supported clock; the first event must remain in history.",
+      "reviewer_label": "Synthetic validation reviewer",
+      "policy_version": "flight_human_review_v1",
+      "normalization_policy": "flight_time_normalization_v1",
+      "detection_policy": "flight_discrepancy_v1",
+      "created_at": "2026-11-16T11:39:19.213955"
+    },
+    {
+      "id": "b30f1e36a47042f09992c61cde25acb5",
+      "request_id": "998c1e4de8e947589c8e368d48a30fd4",
+      "job_id": 1,
+      "discrepancy_id": "fld_9f98ed76eb47a0ec89eb4c35e8116c4602f3ce16882a528c9d2c7a92b5352b74",
+      "flight": "ZZ-200-CCC-DDD",
+      "field": "act_arr_time",
+      "evidence_digest": "sha256:b4e0918c26007bc4174cdbc696568f1017e6cc4d7b59725e2d7b2086aa0c7f12",
+      "revision": 1,
+      "action": "unresolved",
+      "candidate_id": null,
+      "investigation_id": null,
+      "manual_value": null,
+      "resolution": null,
+      "rationale": "One report is empty and the other unavailable; there is no supported arrival clock to approve.",
+      "reviewer_label": "Synthetic validation reviewer",
+      "policy_version": "flight_human_review_v1",
+      "normalization_policy": "flight_time_normalization_v1",
+      "detection_policy": "flight_discrepancy_v1",
+      "created_at": "2026-11-16T11:39:19.242885"
+    },
+    {
+      "id": "caba531d5cce4a41a81b2727c1746a40",
+      "request_id": "7ceffc3d9190477f914204bbc501db9f",
+      "job_id": 1,
+      "discrepancy_id": "fld_9f98ed76eb47a0ec89eb4c35e8116c4602f3ce16882a528c9d2c7a92b5352b74",
+      "flight": "ZZ-200-CCC-DDD",
+      "field": "act_arr_time",
+      "evidence_digest": "sha256:b4e0918c26007bc4174cdbc696568f1017e6cc4d7b59725e2d7b2086aa0c7f12",
+      "revision": 2,
+      "action": "unresolved",
+      "candidate_id": null,
+      "investigation_id": null,
+      "manual_value": null,
+      "resolution": null,
+      "rationale": "Revisited: no additional source evidence; retain unresolved with this new event.",
+      "reviewer_label": "Synthetic validation reviewer",
+      "policy_version": "flight_human_review_v1",
+      "normalization_policy": "flight_time_normalization_v1",
+      "detection_policy": "flight_discrepancy_v1",
+      "created_at": "2026-11-16T11:39:19.365237"
+    }
+  ],
+  "export_metadata": {
+    "id": "399e6a0d689448ecb9a6313441cbf965",
+    "request_id": "9cb764eff4414ec18467d5e2eb6b652a",
+    "job_id": 1,
+    "snapshot_digest": "sha256:ddcad7d954c2dca763e287912616dff76e80096e82480ac54081fe9297378676",
+    "input_sha256": "bafbefd3e1dbd35096517893345a1cf9c54f71194e46846229ed8fda2c536713",
+    "policy_version": "flight_reviewed_export_v1",
+    "artifacts": {
+      "reviewed": {
+        "sha256": "4042cd8c79b049e10668a9a3beae823ab3eb983f0bc4fb7f57a22bd5bbb61a75",
+        "bytes": 763
+      },
+      "exceptions": {
+        "sha256": "dd72e3737a6bc351f75b277972dbdb2fdcd50ebce2c3892ba4c9af854062f349",
+        "bytes": 2068
+      },
+      "provenance": {
+        "sha256": "fc077c86b9bcb93d1ab7d54ba921b72c8852e5ac86f7ff0cbecdbb0fe2ef19a3",
+        "bytes": 13478
+      }
+    },
+    "created_at": "2026-11-16T11:39:19.298697"
+  },
+  "table_counts": {
+    "alembic_version": 1,
+    "processing_jobs": 1,
+    "job_analyses": 1,
+    "job_executions": 1,
+    "import_templates": 0,
+    "job_imports": 1,
+    "job_records": 0,
+    "flight_observations": 7,
+    "flight_investigations": 0,
+    "flight_review_decisions": 4,
+    "flight_reviewed_exports": 1
+  },
+  "sql_verbs": {
+    "INSERT": 10,
+    "SELECT": 160,
+    "UPDATE": 7,
+    "BEGIN": 6
+  },
+  "api_checks": [
+    {
+      "method": "POST",
+      "path": "/api/v1/flights/uploads",
+      "status": 202
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/flights/jobs/1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/flights/jobs/1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/flights/jobs/1/discrepancies?kind=all&page_size=100",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/flights/jobs/1/discrepancies/fld_d283d14cf8f8a63f2e28ce039b7f7ef394dc24861b43e5290594e39d6a6d4c08",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/flights/jobs/1/discrepancies/fld_9f98ed76eb47a0ec89eb4c35e8116c4602f3ce16882a528c9d2c7a92b5352b74",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/flights/jobs/1/discrepancies/fld_4c5f79d189c8ed833e2a3ab13703b0bb7c8ae37b4e9e38440099fbc6f5f102f6",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/flights/jobs/1/discrepancies/fld_4c5f79d189c8ed833e2a3ab13703b0bb7c8ae37b4e9e38440099fbc6f5f102f6/review",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/flights/jobs/1/discrepancies/fld_4c5f79d189c8ed833e2a3ab13703b0bb7c8ae37b4e9e38440099fbc6f5f102f6/review",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/flights/jobs/1/discrepancies/fld_4c5f79d189c8ed833e2a3ab13703b0bb7c8ae37b4e9e38440099fbc6f5f102f6/review",
+      "status": 409
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/flights/jobs/1/discrepancies/fld_4c5f79d189c8ed833e2a3ab13703b0bb7c8ae37b4e9e38440099fbc6f5f102f6/review",
+      "status": 409
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/flights/jobs/1/discrepancies/fld_4c5f79d189c8ed833e2a3ab13703b0bb7c8ae37b4e9e38440099fbc6f5f102f6/review",
+      "status": 409
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/flights/jobs/1/discrepancies/fld_4c5f79d189c8ed833e2a3ab13703b0bb7c8ae37b4e9e38440099fbc6f5f102f6/review",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/flights/jobs/1/discrepancies/fld_9f98ed76eb47a0ec89eb4c35e8116c4602f3ce16882a528c9d2c7a92b5352b74/review",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/flights/jobs/1/discrepancies/fld_4c5f79d189c8ed833e2a3ab13703b0bb7c8ae37b4e9e38440099fbc6f5f102f6/review",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/flights/jobs/1/discrepancies/fld_9f98ed76eb47a0ec89eb4c35e8116c4602f3ce16882a528c9d2c7a92b5352b74/review",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/flights/jobs/1/discrepancies/fld_4c5f79d189c8ed833e2a3ab13703b0bb7c8ae37b4e9e38440099fbc6f5f102f6/review/history?page_size=1&page=1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/flights/jobs/1/discrepancies/fld_4c5f79d189c8ed833e2a3ab13703b0bb7c8ae37b4e9e38440099fbc6f5f102f6/review/history?page_size=1&page=2",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/flights/jobs/1/exports/snapshot",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/flights/jobs/1/exports",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/flights/jobs/1/exports",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/flights/jobs/1/exports",
+      "status": 409
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/flights/jobs/1/exports/399e6a0d689448ecb9a6313441cbf965/download/reviewed",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/flights/jobs/1/exports/399e6a0d689448ecb9a6313441cbf965/download/exceptions",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/flights/jobs/1/exports/399e6a0d689448ecb9a6313441cbf965/download/provenance",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/flights/jobs/1/discrepancies/fld_9f98ed76eb47a0ec89eb4c35e8116c4602f3ce16882a528c9d2c7a92b5352b74/review",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/flights/jobs/1/exports/snapshot",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/flights/jobs/1/exports",
+      "status": 409
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/flights/jobs/1/exports",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/flights/jobs/1/exports/399e6a0d689448ecb9a6313441cbf965/download/reviewed",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/flights/jobs/1/exports/399e6a0d689448ecb9a6313441cbf965/download/exceptions",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/flights/jobs/1/exports/399e6a0d689448ecb9a6313441cbf965/download/provenance",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/flights/jobs/1/exports/399e6a0d689448ecb9a6313441cbf965",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/flights/jobs/1/exports",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/flights/jobs/1/discrepancies/fld_9f98ed76eb47a0ec89eb4c35e8116c4602f3ce16882a528c9d2c7a92b5352b74/review/history",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/flights/jobs/1",
+      "status": 200
+    }
+  ],
+  "artifact_checks": {
+    "reviewed": {
+      "sha256": "4042cd8c79b049e10668a9a3beae823ab3eb983f0bc4fb7f57a22bd5bbb61a75",
+      "bytes": 763
+    },
+    "exceptions": {
+      "sha256": "dd72e3737a6bc351f75b277972dbdb2fdcd50ebce2c3892ba4c9af854062f349",
+      "bytes": 2068
+    },
+    "provenance": {
+      "sha256": "fc077c86b9bcb93d1ab7d54ba921b72c8852e5ac86f7ff0cbecdbb0fe2ef19a3",
+      "bytes": 13478
+    }
+  },
+  "reviewed_rows": 3,
+  "exception_rows": 11,
+  "approved_field_count": 1,
+  "schema_unchanged": true,
+  "browser_persistence_verified": false,
+  "ai_calls": 0
+}

@@ -1,6 +1,10 @@
 export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
 
+export class ApiError extends Error {
+  constructor(message: string, public readonly status: number) { super(message); this.name = "ApiError"; }
+}
+
 function validationMessage(issue: unknown): string {
   if (
     !issue || typeof issue !== "object" ||
@@ -18,10 +22,10 @@ function validationMessage(issue: unknown): string {
   return field ? `${field}: ${issue.msg}` : issue.msg;
 }
 
-export async function api<T>(
+export async function apiResponse(
   path: string,
   options?: RequestInit,
-): Promise<T> {
+): Promise<Response> {
   const response = await fetch(`${API_BASE_URL}${path}`, options);
 
   if (!response.ok) {
@@ -33,14 +37,22 @@ export async function api<T>(
       ? detail.map(validationMessage).filter(Boolean).join("; ")
       : "";
 
-    throw new Error(
+    const intake = detail && typeof detail === "object" && "code" in detail && typeof detail.code === "string" &&
+      "message" in detail && typeof detail.message === "string" && detail.message.trim()
+      ? detail.message : "";
+
+    throw new ApiError(
       typeof detail === "string"
         ? detail
-        : validation || `Request failed (${response.status}).`,
+        : validation || intake || `Request failed (${response.status}).`,
+      response.status,
     );
   }
 
-  return response.json() as Promise<T>;
+  return response;
+}
+export async function api<T>(path: string, options?: RequestInit): Promise<T> {
+  return (await apiResponse(path, options)).json() as Promise<T>;
 }
 export function downloadUrl(id: number, kind: "input" | "clean" | "errors") {
   return `${API_BASE_URL}/api/v1/jobs/${id}/download/${kind}`;

@@ -1,0 +1,285 @@
+{
+  "checked": [
+    {
+      "width": 1440,
+      "height": 900,
+      "path": "/",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "path": "/datasets",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "path": "/investigate",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "path": "/history",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "path": "/legacy/transactions",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "path": "/not-a-page",
+      "overflow": false
+    },
+    {
+      "width": 1024,
+      "height": 900,
+      "path": "/",
+      "overflow": false
+    },
+    {
+      "width": 1024,
+      "height": 900,
+      "path": "/datasets",
+      "overflow": false
+    },
+    {
+      "width": 1024,
+      "height": 900,
+      "path": "/investigate",
+      "overflow": false
+    },
+    {
+      "width": 1024,
+      "height": 900,
+      "path": "/history",
+      "overflow": false
+    },
+    {
+      "width": 1024,
+      "height": 900,
+      "path": "/legacy/transactions",
+      "overflow": false
+    },
+    {
+      "width": 1024,
+      "height": 900,
+      "path": "/not-a-page",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "height": 900,
+      "path": "/",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "height": 900,
+      "path": "/datasets",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "height": 900,
+      "path": "/investigate",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "height": 900,
+      "path": "/history",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "height": 900,
+      "path": "/legacy/transactions",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "height": 900,
+      "path": "/not-a-page",
+      "overflow": false
+    },
+    {
+      "width": 720,
+      "height": 900,
+      "path": "/",
+      "overflow": false
+    },
+    {
+      "width": 720,
+      "height": 900,
+      "path": "/datasets",
+      "overflow": false
+    },
+    {
+      "width": 720,
+      "height": 900,
+      "path": "/investigate",
+      "overflow": false
+    },
+    {
+      "width": 720,
+      "height": 900,
+      "path": "/history",
+      "overflow": false
+    },
+    {
+      "width": 720,
+      "height": 900,
+      "path": "/legacy/transactions",
+      "overflow": false
+    },
+    {
+      "width": 720,
+      "height": 900,
+      "path": "/not-a-page",
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "height": 900,
+      "path": "/",
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "height": 900,
+      "path": "/datasets",
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "height": 900,
+      "path": "/investigate",
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "height": 900,
+      "path": "/history",
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "height": 900,
+      "path": "/legacy/transactions",
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "height": 900,
+      "path": "/not-a-page",
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "height": 900,
+      "path": "/",
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "height": 900,
+      "path": "/datasets",
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "height": 900,
+      "path": "/investigate",
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "height": 900,
+      "path": "/history",
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "height": 900,
+      "path": "/legacy/transactions",
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "height": 900,
+      "path": "/not-a-page",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "path": "/investigate?dataset=7&discrepancy=synthetic",
+      "overflow": false
+    },
+    {
+      "width": 1024,
+      "height": 900,
+      "path": "/investigate?dataset=7&discrepancy=synthetic",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "height": 900,
+      "path": "/investigate?dataset=7&discrepancy=synthetic",
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "height": 900,
+      "path": "/investigate?dataset=7&discrepancy=synthetic",
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "height": 900,
+      "path": "/investigate?dataset=7&discrepancy=synthetic",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "path": "/history?dataset=7",
+      "overflow": false
+    },
+    {
+      "width": 1024,
+      "height": 900,
+      "path": "/history?dataset=7",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "height": 900,
+      "path": "/history?dataset=7",
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "height": 900,
+      "path": "/history?dataset=7",
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "height": 900,
+      "path": "/history?dataset=7",
+      "overflow": false
+    }
+  ],
+  "browserVersion": "153.0.8010.12",
+  "liveBackend": false,
+  "syntheticCorrectionFixtures": true,
+  "syntheticInvestigationFixtures": true,
+  "failures": []
+}

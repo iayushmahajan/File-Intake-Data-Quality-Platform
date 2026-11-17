@@ -1,0 +1,8 @@
+tuple_id,src,flight,sched_dep_time,act_dep_time,sched_arr_time,act_arr_time
+pv-a-1,source-a,ZZ-100-AAA-BBB,16:30,17:08,18:00,18:10
+pv-a-2,source-b,ZZ-100-AAA-BBB,16:30,17:09,18:00,18:10
+pv-a-3,source-b,ZZ-100-AAA-BBB,16:30,17:09,18:00,18:10
+pv-b-1,source-a,ZZ-200-CCC-DDD,10:00,10:05,11:00,
+pv-b-2,source-b,ZZ-200-CCC-DDD,10:00,10:05,11:00,Not Available
+pv-c-1,source-a,ZZ-300-EEE-FFF,9:00 AM,09:05,10:00,10:05
+pv-c-2,source-b,ZZ-300-EEE-FFF,09:00 a.m.,09:05,10:00,10:05

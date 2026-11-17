@@ -1,0 +1,133 @@
+{
+  "origin": "http://127.0.0.1:5174",
+  "api": "http://127.0.0.1:8011",
+  "interceptedResponses": false,
+  "methodsAllowed": [
+    "GET",
+    "HEAD",
+    "OPTIONS"
+  ],
+  "checks": [
+    {
+      "width": 1440,
+      "height": 900,
+      "path": "/",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "path": "/datasets",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "path": "/investigate",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "path": "/history",
+      "overflow": false
+    },
+    {
+      "width": 1024,
+      "height": 900,
+      "path": "/",
+      "overflow": false
+    },
+    {
+      "width": 1024,
+      "height": 900,
+      "path": "/datasets",
+      "overflow": false
+    },
+    {
+      "width": 1024,
+      "height": 900,
+      "path": "/investigate",
+      "overflow": false
+    },
+    {
+      "width": 1024,
+      "height": 900,
+      "path": "/history",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "height": 900,
+      "path": "/",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "height": 900,
+      "path": "/datasets",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "height": 900,
+      "path": "/investigate",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "height": 900,
+      "path": "/history",
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "height": 900,
+      "path": "/",
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "height": 900,
+      "path": "/datasets",
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "height": 900,
+      "path": "/investigate",
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "height": 900,
+      "path": "/history",
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "height": 900,
+      "path": "/",
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "height": 900,
+      "path": "/datasets",
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "height": 900,
+      "path": "/investigate",
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "height": 900,
+      "path": "/history",
+      "overflow": false
+    }
+  ],
+  "errors": []
+}

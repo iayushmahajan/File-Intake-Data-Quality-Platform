@@ -1,0 +1,4 @@
+job_id,export_id,flight,sched_dep_time,sched_dep_time_status,sched_dep_time_decision_id,sched_dep_time_revision,act_dep_time,act_dep_time_status,act_dep_time_decision_id,act_dep_time_revision,sched_arr_time,sched_arr_time_status,sched_arr_time_decision_id,sched_arr_time_revision,act_arr_time,act_arr_time_status,act_arr_time_decision_id,act_arr_time_revision
+1,399e6a0d689448ecb9a6313441cbf965,ZZ-100-AAA-BBB,,unreviewed,,0,,unreviewed,,0,,unreviewed,,0,,unreviewed,,0
+1,399e6a0d689448ecb9a6313441cbf965,ZZ-200-CCC-DDD,,unreviewed,,0,,unreviewed,,0,,unreviewed,,0,,unresolved,b30f1e36a47042f09992c61cde25acb5,1
+1,399e6a0d689448ecb9a6313441cbf965,ZZ-300-EEE-FFF,09:00,overridden,55de373feed240c1a92b323f552bfaec,2,,unreviewed,,0,,unreviewed,,0,,unreviewed,,0

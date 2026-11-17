@@ -15,11 +15,15 @@ from app.models.processing_job import (
     JobExecution,
     JobImport,
     JobRecord,
+    FlightObservation,
     ProcessingJob,
 )
 from app.analytics.schemas import AnalysisResponse
 from app.intake.schemas import ImportOptions
 from app.intake.processing import process_csv_file
+from app.intake.flights import (
+    FLIGHTS_CONTRACT, FLIGHTS_VERSION, FlightsImportError, FlightsResult, process_flights_file,
+)
 from billiard.exceptions import SoftTimeLimitExceeded
 from sqlalchemy import insert, update
 from sqlalchemy.exc import SQLAlchemyError
@@ -82,27 +86,40 @@ def _finish(job_id: int, token: str, result: dict, duration_ms: int) -> bool:
         job.status = result["status"]
         job.error_message = result.get("error_message")
         job.processed_at = now
-        job.total_rows = result["total_rows"]
-        job.valid_rows = result["valid_rows"]
-        job.invalid_rows = result["invalid_rows"]
-        job.filename_cleaned = result["cleaned_filename"]
-        job.filename_error_report = result["error_filename"]
         metrics = session.get(JobAnalysis, job_id)
         metrics.duration_ms = duration_ms
-        metrics.analysis = result["analysis"]
-        metrics.error_breakdown = result["error_breakdown"]
         metadata = session.get(JobImport, job_id)
-        if metadata:
-            metadata.records_available = (
-                "records" in result and result["status"] == "completed"
+        if job.job_kind == FLIGHTS_CONTRACT:
+            observations = (
+                FlightsResult.model_validate(result).model_dump()["observations"]
+                if result["status"] == "completed" else []
             )
+            job.total_rows = len(observations)
+            metadata.issues = result.get("issues", [])
+            for start in range(0, len(observations), 500):
+                session.execute(insert(FlightObservation), [
+                    dict(item, job_id=job_id) for item in observations[start:start + 500]
+                ])
             session.add(metadata)
-        records = result.get("records", [])
-        for start in range(0, len(records), 500):
-            session.execute(
-                insert(JobRecord),
-                [dict(item, job_id=job_id) for item in records[start : start + 500]],
-            )
+        else:
+            job.total_rows = result["total_rows"]
+            job.valid_rows = result["valid_rows"]
+            job.invalid_rows = result["invalid_rows"]
+            job.filename_cleaned = result["cleaned_filename"]
+            job.filename_error_report = result["error_filename"]
+            metrics.analysis = result["analysis"]
+            metrics.error_breakdown = result["error_breakdown"]
+            if metadata:
+                metadata.records_available = (
+                    "records" in result and result["status"] == "completed"
+                )
+                session.add(metadata)
+            records = result.get("records", [])
+            for start in range(0, len(records), 500):
+                session.execute(
+                    insert(JobRecord),
+                    [dict(item, job_id=job_id) for item in records[start : start + 500]],
+                )
         session.add_all([job, metrics])
         session.commit()
     return True
@@ -159,21 +176,27 @@ def process_job(job_id: object) -> str:
         if not source.is_relative_to(INPUT_DIR.resolve()):
             raise FileNotFoundError("Invalid stored input location")
         with Session(engine) as session:
+            job = session.get(ProcessingJob, job_id)
+            job_kind, expected_hash = job.job_kind, job.input_sha256
             metadata = session.get(JobImport, job_id)
-            options = (
-                ImportOptions.model_validate(metadata.options)
-                if metadata
-                else ImportOptions()
-            )
+            configuration = dict(metadata.options) if metadata else {}
             corrections = dict(metadata.corrections) if metadata else {}
-        result = process_csv_file(
-            source, output_dir=attempt_dir, options=options, corrections=corrections
-        )
-        # Verify the analytical contract and files before terminal publication.
-        AnalysisResponse.model_validate(result["analysis"])
-        for key in ("cleaned_filename", "error_filename"):
-            if result[key] and not (OUTPUT_DIR / result[key]).is_file():
-                raise FileNotFoundError("Processing output was not generated")
+        if job_kind == FLIGHTS_CONTRACT:
+            if configuration != {"contract_version": FLIGHTS_VERSION}:
+                raise FlightsImportError("contract_version", "Unsupported Flights contract version.")
+            result = process_flights_file(source, expected_hash).model_dump()
+        elif job_kind == "transactions":
+            options = ImportOptions.model_validate(configuration)
+            result = process_csv_file(
+                source, output_dir=attempt_dir, options=options, corrections=corrections
+            )
+            # Transaction analytics and generated artifacts retain their existing contract.
+            AnalysisResponse.model_validate(result["analysis"])
+            for key in ("cleaned_filename", "error_filename"):
+                if result[key] and not (OUTPUT_DIR / result[key]).is_file():
+                    raise FileNotFoundError("Processing output was not generated")
+        else:
+            raise ValueError("Unsupported job kind")
         # A timeout or lost acknowledgement can interrupt final publication
         # after the DB committed. Retain files until _finish confirms whether
         # this attempt published or was superseded.
@@ -182,6 +205,8 @@ def process_job(job_id: object) -> str:
             job_id, token, result, round((perf_counter() - started) * 1000)
         )
         return result["status"] if keep_outputs else "superseded"
+    except FlightsImportError as error:
+        return _fail(job_id, token, str(error), started, [error.issue.model_dump()])
     except (OSError, SoftTimeLimitExceeded) as error:
         if isinstance(error, SoftTimeLimitExceeded) or getattr(
             error, "errno", None
@@ -219,7 +244,7 @@ def process_job(job_id: object) -> str:
             shutil.rmtree(attempt_dir, ignore_errors=True)
 
 
-def _fail(job_id: int, token: str, message: str, started: float) -> str:
+def _fail(job_id: int, token: str, message: str, started: float, issues=None) -> str:
     result = dict(
         status="failed",
         error_message=message,
@@ -230,6 +255,7 @@ def _fail(job_id: int, token: str, message: str, started: float) -> str:
         error_filename="",
         analysis={},
         error_breakdown={},
+        issues=issues or [],
     )
     return (
         "failed"

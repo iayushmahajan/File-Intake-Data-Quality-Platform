@@ -59,7 +59,8 @@ def list_jobs(
     | None = None,
     session: Session = Depends(get_session),
 ):
-    filters = []
+    # The existing dashboard and response schema describe transaction jobs.
+    filters = [ProcessingJob.job_kind == "transactions"]
     if search.strip():
         term = search.strip()
         match = ProcessingJob.filename_original.icontains(term, autoescape=True)
@@ -89,6 +90,8 @@ def list_jobs(
 @router.get("/{job_id}", response_model=JobDetailResponse)
 def get_job(job_id: int, session: Session = Depends(get_session)):
     job = get_job_or_404(job_id, session)
+    if job.job_kind != "transactions":
+        raise HTTPException(409, "Use the Flights job status endpoint for this import.")
     metrics = session.get(JobAnalysis, job_id)
     extra = metrics.model_dump(exclude={"job_id"}) if metrics else {}
     execution = session.get(JobExecution, job_id)
@@ -132,6 +135,8 @@ def generate_job_ai_analysis(
     session: Session = Depends(get_session),
 ) -> dict[str, Any]:
     job = get_job_or_404(job_id, session)
+    if job.job_kind != "transactions":
+        raise HTTPException(409, "Transaction AI analysis is unavailable for this job kind.")
     if job.status != "completed":
         raise HTTPException(409, "AI analysis requires a completed job.")
     summary = build_llm_summary(job)

@@ -1,0 +1,2 @@
+# Frozen synthetic evidence: retain exact CSV bytes and recognize CRLF terminators.
+docs/product-validation/milestone-1/evidence/*.csv -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

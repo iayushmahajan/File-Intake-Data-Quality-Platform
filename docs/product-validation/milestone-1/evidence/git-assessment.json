@@ -1,0 +1,117 @@
+{
+  "groups": {
+    "backend": {
+      "files": 105,
+      "bytes": 1819341
+    },
+    "compose.reconcile.yaml": {
+      "files": 1,
+      "bytes": 3360
+    },
+    "docs": {
+      "files": 37,
+      "bytes": 5959262
+    },
+    "docs_images": {
+      "files": 115,
+      "bytes": 17955814
+    },
+    "frontend": {
+      "files": 85,
+      "bytes": 648203
+    },
+    "scripts": {
+      "files": 9,
+      "bytes": 90708
+    },
+    ".env.example": {
+      "files": 1,
+      "bytes": 688
+    },
+    ".github": {
+      "files": 1,
+      "bytes": 1606
+    },
+    ".gitignore": {
+      "files": 1,
+      "bytes": 525
+    },
+    ".vscode": {
+      "files": 1,
+      "bytes": 701
+    },
+    "README.md": {
+      "files": 1,
+      "bytes": 9937
+    },
+    "assets": {
+      "files": 7,
+      "bytes": 1240553
+    },
+    "docker-compose.yml": {
+      "files": 1,
+      "bytes": 3554
+    },
+    "run.sh": {
+      "files": 1,
+      "bytes": 1137
+    }
+  },
+  "limited_secret_pattern_findings": [],
+  "ignored_local_paths": [
+    {
+      "path": ".env",
+      "ignored": true,
+      "mode": "0o600",
+      "kind": "file"
+    },
+    {
+      "path": ".env.reconcile.local",
+      "ignored": true,
+      "mode": "0o600",
+      "kind": "file"
+    },
+    {
+      "path": "backend/.env",
+      "ignored": true,
+      "mode": "0o600",
+      "kind": "file"
+    },
+    {
+      "path": "frontend/.env",
+      "ignored": true,
+      "mode": "0o600",
+      "kind": "file"
+    },
+    {
+      "path": "frontend/dist",
+      "ignored": true,
+      "mode": "0o755",
+      "kind": "directory"
+    },
+    {
+      "path": "frontend/node_modules",
+      "ignored": true,
+      "mode": "0o755",
+      "kind": "directory"
+    },
+    {
+      "path": "backend/.venv",
+      "ignored": true,
+      "mode": "0o755",
+      "kind": "directory"
+    },
+    {
+      "path": "backend/data/input",
+      "ignored": false,
+      "mode": "0o755",
+      "kind": "directory"
+    },
+    {
+      "path": "backend/data/output",
+      "ignored": false,
+      "mode": "0o755",
+      "kind": "directory"
+    }
+  ]
+}

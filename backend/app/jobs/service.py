@@ -7,6 +7,7 @@ from app.models.processing_job import (
     ProcessingJob,
 )
 from app.intake.schemas import ImportOptions
+from app.intake.flights import FLIGHTS_CONTRACT, FLIGHTS_VERSION
 from app.jobs.schemas import UploadResponse
 from fastapi import HTTPException, Response
 from sqlmodel import Session
@@ -18,12 +19,25 @@ def create_job(
     original: str,
     filename: str,
     path: Path,
-    options: ImportOptions,
+    options: ImportOptions | None,
     parent_job_id=None,
     corrections=None,
     changes=None,
+    *,
+    job_kind: str = "transactions",
+    input_sha256: str | None = None,
 ):
+    if job_kind == FLIGHTS_CONTRACT:
+        if options is not None or not input_sha256 or parent_job_id is not None:
+            raise ValueError("Flights jobs require a hash and no transaction configuration")
+        configuration = {"contract_version": FLIGHTS_VERSION}
+    elif job_kind == "transactions" and options is not None:
+        configuration = options.model_dump()
+    else:
+        raise ValueError("Unsupported job configuration")
     job = ProcessingJob(
+        job_kind=job_kind,
+        input_sha256=input_sha256,
         filename_original=original,
         filename_input_saved=filename,
         filename_cleaned="",
@@ -40,7 +54,7 @@ def create_job(
             JobImport(
                 job_id=job.id,
                 parent_job_id=parent_job_id,
-                options=options.model_dump(),
+                options=configuration,
                 corrections=corrections or {},
                 changes=changes or {},
             )
@@ -53,7 +67,10 @@ def create_job(
             path.unlink(missing_ok=True)
         raise
     session.refresh(job)
-    status_url = f"/api/v1/jobs/{job.id}"
+    status_url = (
+        f"/api/v1/flights/jobs/{job.id}" if job_kind == FLIGHTS_CONTRACT
+        else f"/api/v1/jobs/{job.id}"
+    )
     response.headers["Location"] = status_url
     return UploadResponse(
         status="pending",

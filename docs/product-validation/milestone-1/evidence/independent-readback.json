@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "read_only_independent_process": true,
+  "review_events_verified": 4,
+  "raw_rows_exactly_match_fixture": 7,
+  "revision": "0006",
+  "counts": {
+    "processing_jobs": 1,
+    "flight_observations": 7,
+    "flight_review_decisions": 4,
+    "flight_reviewed_exports": 1,
+    "flight_investigations": 0
+  }
+}

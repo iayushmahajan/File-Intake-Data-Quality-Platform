@@ -1,249 +1,261 @@
-# File Intake & Data Quality Platform
+# Reconcile Workbench
 
-I built this full-stack app to validate transaction CSV files and make the results easier to review. It separates accepted and rejected records, explains validation errors, and lets you correct rejected values from the dashboard.
+**Full-Stack Data Reconciliation & Quality Platform**
 
-You can map different column names, save import templates, download cleaned data and revisit previous uploads. Files are processed in the background with Celery and Redis, while PostgreSQL stores job history and results. The core workflow runs locally without an AI key.
+Reconcile Workbench helps users import multi-source observations, find conflicting or missing
+values, inspect the original evidence, record human review decisions, and produce traceable
+results. Its current implementation supports the Raha Flights CSV contract.
 
-## The UI
+The workflow is built around a practical distinction: **finding a disagreement is not the same
+as knowing the correct value**. Several sources can agree and still be wrong. The application
+preserves competing reports and uncertainty, offers optional evidence-bounded AI assistance,
+and leaves the final decision with the reviewer. Leaving a case unresolved is a valid outcome.
 
-The dashboard shows the job status, accepted and rejected counts, quality score and validation results. For corrected datasets, it also shows what changed from the original job.
+## What you can do
 
-![File Intake & Data Quality Platform dashboard showing a completed import, quality metrics and a comparison with the original job](docs/images/data-quality-platform-dashboard.png)
+- **Import observations:** validate a Flights CSV, accept a durable job and process it
+  asynchronously through a dispatcher and Celery worker. Original strings and input hashes
+  remain available after processing.
+- **Understand the dataset:** see a real-data overview, browse paginated cases, and filter by
+  finding or time field. Findings include conflicting values, missing information and uncertain
+  interpretations; a flag does not imply an unreviewed case or a proven error.
+- **Investigate one case:** compare source-supported values, navigate Previous/Next within the
+  filtered selection, and inspect supporting, conflicting and original reports in contextual
+  panels. Desktop evidence panels support wheel scrolling and pointer/keyboard resizing;
+  mobile uses compact source records.
+- **Record a review:** choose an observed value, enter a permitted explicit clock, accept or
+  reject an eligible AI proposal, or leave the case unresolved. The review dialog preserves
+  unfinished input and guards navigation. Reviewer labels are local attribution, not authenticated
+  identities or proof of independent verification.
+- **Keep a history:** review events are versioned and append-only through application write
+  paths. Evidence digests, revisions and idempotency keys protect against stale or duplicate writes.
+- **Freeze results:** create a reviewed CSV, exceptions CSV and provenance JSON tied to the
+  exact evidence and decision snapshot. Later reviews do not change earlier exports. Only current
+  accepted/overridden decisions populate approved values; unapproved fields remain empty.
+- **Request AI explicitly:** the implemented OpenAI-compatible integration may suggest one
+  existing candidate or abstain. Candidate IDs and evidence references are validated server-side;
+  provider failures are distinct from abstention. AI cannot approve a correction or modify observations.
+- **Evaluate offline:** file-only tooling checks frozen exports before comparing them with an
+  explicitly supplied, isolated benchmark reference. It reports detection and repair outcomes,
+  including harmful repairs and unresolved results.
 
-These screenshots show the running app using the included fictional sample data. In this example, correcting one invalid email increases accepted records from 1 to 2 and the quality score from 70 to 100.
+## Screenshots
 
-### Column mapping and validation preview
+These captures show the actual local application using the published **dirty observations**,
+not fictional product data or demonstrated correction accuracy. AI and review states reflect
+the capture time. The review-dialog image shows an unsaved form, not a persisted decision.
+Raw benchmark CSVs and clean-reference files are not included in this repository.
 
-Choose which source column belongs to each field, reuse a saved template and preview validation before processing the file.
+**Dataset overview** — import status, record counts and overlapping findings.
 
-![Import form with a saved template, source-column mappings and validation results for two sample records](docs/images/import-mapping-light.png)
+![Flights dataset overview](docs/ui-review/layout-and-contextual-details/desktop-overview.png)
 
-### Record explorer and corrections
+**Cases table** — find an individual flight/time-field case without opening all its evidence.
 
-Search and filter records, inspect the errors on a rejected row and edit its values. Reprocessing creates a linked job and keeps the original results.
+![Filtered Flights cases table](docs/ui-review/layout-and-contextual-details/desktop-cases.png)
 
-![Dataset explorer with a rejected record open for editing and its invalid email highlighted](docs/images/record-correction-light.png)
+<details>
+<summary>Focused case investigation</summary>
 
-## What it does
+![Focused case with reported-value comparison](docs/ui-review/layout-and-contextual-details/desktop-case-default.png)
 
-A CSV can look ready to use while containing invalid dates, mismatched currencies, duplicates or missing values. The app checks these rules and shows which records passed, which need correction and which are valid but unusual.
+</details>
 
-### From upload to results
+<details>
+<summary>Source evidence panel</summary>
+
+![Source evidence with original and interpreted values](docs/ui-review/panel-and-review-interactions/desktop-source-default.png)
+
+</details>
+
+<details>
+<summary>Human review dialog</summary>
+
+![Human review dialog with reported values and unresolved option](docs/ui-review/panel-and-review-interactions/desktop-review-dialog.png)
+
+</details>
+
+<details>
+<summary>Mobile investigation</summary>
+
+<img src="docs/ui-review/layout-and-contextual-details/mobile-case-default.png" alt="Mobile focused investigation with case navigation and reported values" width="390" />
+
+</details>
+
+[Layout verification gallery](docs/ui-review/layout-and-contextual-details/README.md) ·
+[Scrolling, resizing and review-dialog verification](docs/ui-review/panel-and-review-interactions/README.md)
+
+## Architecture
+
+A feature-oriented **modular monolith** owns the domain and API. The API, worker and dispatcher
+run as separate processes from the same backend codebase; these are not independently designed
+microservices. React owns interaction state and presentation. Deterministic backend code owns
+normalization, discrepancies, candidate support and validation.
 
 ```mermaid
-flowchart TD
-    A[Upload a transaction CSV] --> M[Map columns or reuse a template]
-    M --> B[Validate and normalize records]
-    B --> C[Accepted records]
-    B --> D[Rejected records with explanations]
-    C --> E[Download cleaned CSV]
-    D --> F[Download error report]
-    D --> R[Correct rejected records]
-    R --> V[Reprocess as a linked job]
-    V --> H
-    C --> G[Review quality, patterns and anomalies]
-    D --> G
-    G --> H[Reopen saved results from job history]
+flowchart LR
+    CSV[CSV upload] --> Job[Validation and durable job]
+    Job --> Worker[Dispatcher / Celery processing]
+    Worker --> Observations[Immutable observations]
+    Observations --> Evidence[Discrepancies and evidence]
+    Evidence --> Review[Explicit human review]
+    Evidence --> AI[Optional bounded AI assessment]
+    AI --> Review
+    Review --> Export[Frozen CSVs and provenance]
 ```
 
-For example, an invalid email produces a rejected record with an explanation. An otherwise valid order above 1,000 remains accepted but is flagged for review. The dashboard treats validation errors and anomaly signals separately.
-
-| Feature | What it does |
+| Area | Implementation |
 |---|---|
-| Column mapping and templates | Confirm source headers, preview field validation, and save mappings and rules; each job keeps the version it used |
-| Record exploration and correction | Search every indexed record, filter and export results, edit rejected values, and compare a reprocessed job with its original |
-| Validation and normalization | Checks across 12 required fields, cross-field rules and duplicate records; consistent formatting in accepted output |
-| Quality analysis | A calculated quality score, field statistics, error patterns and rule-based anomaly flags |
-| Background processing | A job ID immediately after acceptance, visible processing states and automatically displayed results |
-| Historical dashboard | Saved analytics, searchable validation errors, file previews and job history with search, filters and pagination |
-| CSV exports | Original input, normalized accepted records and rejected records with error details |
-| Optional AI interpretation | A saved, downloadable summary based on aggregate measurements, excluding raw customer records |
+| Frontend | React 18, TypeScript, Vite 5, React Router 6 |
+| UI | Tailwind CSS 3, owned shadcn-compatible components, Radix dialog primitives |
+| API and persistence | Python, FastAPI, SQLModel / SQLAlchemy, Alembic, PostgreSQL 16 |
+| Durable processing | Redis 7, Celery, database-backed job dispatch and worker fencing |
+| Optional AI | OpenAI Python SDK with configured compatible Chat Completions endpoint |
+| Local runtime | Docker Compose backend services; host Vite frontend |
+| Tests | pytest, unittest, Vitest, Testing Library and Playwright |
 
-## How it works
-
-```mermaid
-flowchart TD
-    UI["React dashboard<br/>Upload, track and review"] -->|Upload file| API["FastAPI<br/>Save input and create job"]
-    API -->|Job and work to dispatch| DB[("PostgreSQL<br/>Job history and analytics")]
-    API --> FILES["Shared file storage<br/>Input and output CSVs"]
-    DB --> DISPATCH["Dispatcher<br/>Queue saved work and recover expired attempts"]
-    DISPATCH --> REDIS["Redis<br/>Task queue"]
-    REDIS --> WORKER["Celery worker<br/>Validate, normalize and analyze"]
-    WORKER -->|Write reports| FILES
-    WORKER -->|Save results| DB
-    UI -->|Check status and retrieve results| API
-    API -->|Read saved results| DB
-```
-
-FastAPI saves the file and commits the job with its dispatch intent in one database transaction, then returns **HTTP 202**. A separate dispatcher sends the job to Redis, and Celery performs the CSV processing using worker-owned database sessions. PostgreSQL is the primary Compose database; SQLite supports local Python development.
-
-The dashboard follows `pending → queued → processing → completed / failed`, polling while a job is active and loading its analytics when finished. The selected job stays in the URL so a page refresh reopens the same workspace.
-
-### Background job handling
-
-| Decision | Why it matters |
-|---|---|
-| Persist work before publishing to Redis | Accepted jobs remain recorded across API restarts and can be dispatched after a temporary broker outage |
-| Claim each execution attempt atomically | Duplicate task deliveries cannot acquire a job already held by an active worker |
-| Use attempt-specific files and guarded result commits | An expired worker cannot overwrite the outputs or published results of a newer attempt |
-| Bound retries and persist failures | Invalid files and exhausted retries leave an inspectable outcome in job history |
-| Validate AI output before saving it | Reports follow a defined schema and remain separate from deterministic quality calculations |
-
-A task can be delivered more than once. The worker checks ownership of the job before saving results. Recovery depends on the database, dispatcher, broker, worker and shared storage being available. See the [background processing design](docs/ASYNC_PROCESSING.md) for execution leases, retry policies and failure handling.
-
-## Tech stack
-
-| Layer | Technologies |
-|---|---|
-| Frontend | React, TypeScript, Vite, Tailwind CSS, Papa Parse |
-| Backend | Python, FastAPI, Pydantic, Uvicorn |
-| Background jobs | Celery, Redis |
-| Database | PostgreSQL, SQLite, SQLModel, SQLAlchemy, Alembic |
-| AI integration | OpenAI Python SDK with an OpenAI-compatible provider |
-| Testing | pytest, Vitest, React Testing Library, Playwright |
-| Infrastructure | Docker Compose, GitHub Actions |
+Main source areas: `backend/app/intake/`, `backend/app/reconciliation/`, `backend/app/jobs/`,
+`backend/app/services/` and `frontend/src/features/`. See the
+[engineering walkthrough](docs/HANDOFF.md) for function owners and operational boundaries.
+The original transaction feature remains available at an unadvertised compatibility route;
+its backend, migration history and existing data have not been removed.
 
 ## Run locally
 
-With Docker running and Node.js/pnpm installed, start the entire local project from a Linux/WSL terminal:
+Prerequisites: Docker with Compose v2 and the `default` context, Python 3.10+, Node.js 22,
+and pnpm **10.32.1**. Run these commands from the repository root.
+
+For a **new dedicated environment**:
 
 ```bash
-./run.sh
+pnpm --dir frontend install --frozen-lockfile
+bash scripts/reconcile.sh init
+bash scripts/reconcile.sh config
+bash scripts/reconcile.sh up
+bash scripts/reconcile.sh ps
 ```
 
-Open **http://localhost:5175**. The script rebuilds and recreates containers to refresh shared storage, reuses the existing Docker project/data volumes, and starts the frontend. It installs frontend dependencies if absent. Stop any existing frontend on port 5175 first. `Ctrl+C` stops the frontend; backend services keep running.
-
-In VS Code, open this project folder (in WSL if applicable) and press **Ctrl+Shift+B**, or choose **Terminal → Run Task → Run full project**. Use **Terminal → Run Task → Stop backend services** to stop Docker services without deleting saved data.
-
-For individual setup and service commands:
-
-Requires Docker with Compose, Node.js 22+ and pnpm 10.32.1. On Windows, enable Docker Desktop integration for your WSL distro.
+In a second terminal:
 
 ```bash
-# From the repository root
-cp -n .env.example .env
-docker compose -p file-intake-processing-service up --build -d --wait
-
-cd frontend
-pnpm install --frozen-lockfile
-pnpm dev
+bash scripts/reconcile.sh frontend
 ```
 
-| Service | Address |
-|---|---|
-| Dashboard | http://localhost:5173 |
-| API | http://127.0.0.1:8000 |
-| API documentation | http://127.0.0.1:8000/docs |
+- Frontend: **http://localhost:5174/** or http://127.0.0.1:5174/
+- API health: http://127.0.0.1:8011/health
+- Interactive API documentation: http://127.0.0.1:8011/docs
 
-Compose starts PostgreSQL, Redis, the API, a Celery worker and the dispatcher. Migrations run at API startup. Database and broker data use persistent volumes; input and output files are stored in `backend/data`.
+`init` creates ignored, mode-0600 `.env.reconcile.local` with a generated local database
+password. Do not commit it or print resolved Compose configuration: that contains the password.
+The launcher sets the frontend API URL explicitly, and the dedicated API allows both exact
+frontend origins above. No provider credential is required; the dedicated Compose configuration
+leaves AI unconfigured. Provider configuration/evaluation is a separate, controlled task described
+in [the AI contract](docs/FLIGHTS_AI.md).
 
-The root `.env.example` uses `redis://redis:6379/0` for the Compose broker. If an existing root `.env` uses `localhost`, update that value before starting the stack. The backend environment example uses localhost for Python processes running outside Docker.
+The project identity is **`reconcile-workbench`**, using its own PostgreSQL, Redis and
+upload/export volumes. Do not combine `compose.reconcile.yaml` with `docker-compose.yml` or use
+legacy `run.sh` for this runtime. The original `file-intake-processing-service` data is separate.
+
+**API startup applies Alembic migrations automatically** (current head: `0006`). `up` builds and
+recreates the dedicated services while retaining volumes. For an already provisioned, stopped
+environment, use `bash scripts/reconcile.sh start` to start its existing containers. Before any
+upgrade to retained data, follow the backup/rollout guidance; database metadata and application
+files must be backed up together. Preserve the local settings file with its database volumes.
+
+Stop the dedicated backend without deleting storage:
 
 ```bash
-# Run from the repository root
-docker compose -p file-intake-processing-service logs -f api worker dispatcher
-docker compose -p file-intake-processing-service down
+bash scripts/reconcile.sh stop
 ```
 
-Use the same `-p file-intake-processing-service` project name for all commands above and the launcher so they address the same containers and persistent volumes. `docker compose down` without `--volumes` preserves the database and Redis volumes. The default setup binds the API and Redis to localhost and is intended for a single operator.
+Stop the host frontend with Ctrl+C. Details, volume identities and restart guidance:
+[dedicated local runtime](docs/LOCAL_RUNTIME.md). Service startup/stop commands here were not
+executed during release preparation.
 
-For SQLite development, migrations and all environment variables, see the [development reference](docs/DEVELOPMENT.md).
+## Supported dataset and evaluation
 
-## Try a dataset
+The current Flights contract is **`raha_flights_v1`**, version 1, with exactly these columns:
 
-Sample files are in `backend/samples/`:
+```csv
+tuple_id,src,flight,sched_dep_time,act_dep_time,sched_arr_time,act_arr_time
+```
 
-| File | Purpose |
-|---|---|
-| `normal_demo.csv` | Mostly valid transaction records |
-| `heavier_error_demo.csv` | Validation errors and rejected records |
-| `anomaly_demo.csv` | Accepted records with anomaly signals |
-| [`mixed_100_records.csv`](backend/samples/mixed_100_records.csv) | 100 records: 70 valid and 30 invalid |
-| [`mixed_500_records.csv`](backend/samples/mixed_500_records.csv) | 500 records: 350 valid and 150 invalid |
-| [`mixed_1000_records.csv`](backend/samples/mixed_1000_records.csv) | 1,000 records: 700 valid and 300 invalid |
-| [`mixed_10000_records.csv`](backend/samples/mixed_10000_records.csv) | 10,000 records: 7,000 valid and 3,000 invalid |
-| [`mixed_1000_varied_issues.csv`](backend/samples/mixed_1000_varied_issues.csv) | 1,000 records with uneven, scattered issues across all quality dimensions: 663 accepted, 337 rejected |
+Observations are scoped to their import and opaque tuple ID. The four time fields are examined
+independently; ambiguous times, placeholders and missing values remain distinguishable. No
+service date, timezone or historical correctness is inferred. This is benchmark-specific flight
+grouping, not production aviation identity matching or arbitrary-schema reconciliation.
 
-The mixed datasets contain invalid emails, negative amounts, zero quantities, impossible dates, discounts above 100% and country/currency mismatches. Expected counts use the default validation rules. Record counts exclude the header. For the broader quality sample, see the [varied-issues breakdown](backend/samples/VARIED_ISSUES.md).
+The source is [BigDaMa/raha](https://github.com/BigDaMa/raha), pinned by commit and SHA-256 in
+[the source manifest](docs/flights-source-manifest.json). Research attribution and dataset-rights
+uncertainty are recorded in [Flights provenance](docs/FLIGHTS_BENCHMARK.md). Upstream project
+licensing does not establish clearance for all underlying dataset rights. The screenshots are
+limited documentation views; they are not a license grant to redistribute the benchmark.
 
-Choose a sample, confirm the column mapping, select **Preview validation**, then **Upload and Analyze CSV**. Explore Overview, Validation, Data profile, Anomalies and the dataset explorer, then download the clean or error CSV. Reopen the job from history to see its saved results. Samples use fictional identifiers and example.com email addresses.
+Keep raw benchmark files outside the repository, Docker build context and application volumes.
+The operational application uses dirty observations only. **The clean reference belongs solely
+to offline evaluation**, after outputs are frozen; it is not investigation evidence or model input.
+No authentic benchmark repair-accuracy result is claimed. See the
+[offline evaluation contract and CLI](docs/FLIGHTS_EVALUATION.md).
 
-## Correct records and reuse imports
+## Tests and validation
 
-The dataset explorer searches and filters the complete indexed result, with pagination, selectable columns and filtered CSV exports. Rejected fields include error explanations and can be edited in a record detail panel. Validate the corrections, then reprocess the dataset as a new linked job. The comparison shows changes in accepted/rejected counts and quality score, while the original files and results remain intact.
-
-Import templates save column mappings and optional allowed values, numeric bounds and date formats. Each job keeps the configuration used for that run, so later template updates do not change historical results.
-
-Try [`09_partner_headers.csv`](backend/samples/manual/09_partner_headers.csv) for the mapping and correction workflow. See the [import workspace guide](docs/IMPORT_WORKSPACE.md) for API details and the [manual test guide](backend/samples/manual/README.md) for expected outcomes.
-
-## Validation and scoring
-
-The input schema requires 12 columns covering customer ID, email, country, signup date, order amount, currency, payment method, order status, product category, quantity, discount and last login date. Validation checks field formats, supported values, date consistency, country/currency rules and duplicate records.
-
-Accepted records are normalized; rejected records retain their supplied values and include error explanations. A completed job can contain rejected records. Invalid file structure produces a failed job.
-
-The backend calculates and stores the quality score:
-
-| Dimension | What it measures | Weight |
-|---|---|---:|
-| Validity | Records that pass validation | 60% |
-| Completeness | Required cells containing a value | 20% |
-| Uniqueness | Records remaining after duplicate detection | 10% |
-| Anomaly health | Accepted records without anomaly signals | 10% |
-
-The same data produces the same score; AI does not calculate or change it. Anomaly signals use explicit thresholds for order amount, quantity and discount. Amounts remain in their original currencies; aggregate statistics do not perform currency conversion.
-
-See [CSV rules and score calculations](docs/DEVELOPMENT.md) for exact headers, thresholds and handling of empty datasets.
-
-## Optional AI interpretation
-
-For a completed job, you can optionally request an AI summary. The provider receives counts, error-category totals, quality dimensions and numeric profiles. Raw rows, email addresses, customer IDs and filenames are excluded.
-
-Responses must pass a strict Pydantic schema before being saved. Reports can be reopened and exported as Markdown. Configure `OPENAI_API_KEY`, `OPENAI_BASE_URL` and `OPENAI_MODEL` to use a provider; validation and analytics work without them.
-
-## API
-
-| Method | Endpoint | Purpose |
-|---|---|---|
-| GET | `/health` | Process health |
-| POST | `/api/v1/uploads` | Accept a CSV and return its job ID |
-| GET | `/api/v1/jobs` | Paginated history with search and status filters |
-| GET | `/api/v1/jobs/{id}` | Job status, analytics, correction lineage and saved AI report |
-| GET | `/api/v1/jobs/{id}/records` | Search, filter, sort and page through indexed records |
-| GET | `/api/v1/jobs/{id}/records/export` | Download all records matching the current filters |
-| POST | `/api/v1/jobs/{id}/corrections` | Reprocess validated corrections as a linked job |
-| POST | `/api/v1/imports/preview` | Inspect headers and preview mapped field validation |
-| GET / POST | `/api/v1/imports/templates` | List or save reusable import templates |
-| GET | `/api/v1/jobs/{id}/download/{kind}` | Download `input`, `clean` or `errors` CSV |
-| POST | `/api/v1/jobs/{id}/ai-analysis` | Generate or retrieve an AI report |
-
-Interactive request and response schemas are available at `/docs`. Uploads are limited to 10 MiB by default through `MAX_UPLOAD_BYTES`.
-
-## Tests
-
-Backend tests require a Python virtual environment with `backend/requirements.txt` installed. Browser tests also require Docker, Playwright Chromium and free ports 8011 and 5174.
+Install Python test dependencies in an isolated virtual environment if one is not already present:
 
 ```bash
-# From the repository root
-backend/.venv/bin/python -m pytest backend/tests -q
+python3 -m venv backend/.venv
+backend/.venv/bin/python -m pip install -r backend/requirements.txt
+```
+
+Safe repository checks:
+
+```bash
+timeout 180s env PYTHONDONTWRITEBYTECODE=1 backend/.venv/bin/python -m pytest -p no:cacheprovider backend/tests -q
+python3 -B -m unittest discover -s scripts -p 'test_flights_*.py' -q
 pnpm --dir frontend test
 pnpm --dir frontend build
-
-cd frontend
-pnpm exec playwright install chromium
-pnpm test:e2e
-cd ..
-
-# Disposable PostgreSQL, Redis and Celery integration checks
-backend/.venv/bin/python scripts/verify_async_stack.py
+# Set this to an existing Playwright-compatible Chromium executable:
+PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/path/to/chromium pnpm --dir frontend test:foundation
+git diff --check
 ```
 
-Tests cover validation, persistence, migrations, retries, duplicate delivery, polling and browser workflows. Edge cases include malformed CSVs, upload-size boundaries, correction limits, stale or mismatched templates, empty exports and errors beyond the preview sample. Frontend checks cover failed uploads, unavailable templates, duplicate mappings, read-only records and correction retries that preserve edits.
+Backend tests configure temporary SQLite/storage and memory transport before importing the
+application; AI is mocked or disabled. The browser foundation harness starts a temporary Vite
+server and intercepts synthetic APIs. It never proves live PostgreSQL persistence by mocking it.
+Docker-backed E2E and recovery scripts have additional side effects and require separate review.
 
-Test databases and files are isolated from development data. AI calls are mocked or disabled.
+[Product-validation Milestone 1](docs/product-validation/milestone-1/REPORT.md) records an actual
+isolated SQLite review/history/export workflow: persisted decisions, conflict checks, independently
+read-back history, unchanged observations and byte-verified frozen artifacts. It does **not** claim
+browser-level persisted writes, PostgreSQL concurrency or paid-provider validation.
 
-GitHub Actions is configured for backend and frontend tests, the production build and the disposable async integration checks. Detailed execution records are kept in the [verification log](docs/UPGRADE_CHECKPOINT.md).
+Current release-check commands and results are recorded in
+[the checkpoint audit](docs/RELEASE_CHECKPOINT.md); historical gallery counts remain labeled by run.
 
----
+## Current status and limitations
 
-Built by Ayush Satish Mahajan.
+This is an actively developed portfolio project with substantial implemented functionality and
+local runtime validation. It is **not a proven production deployment**.
+
+- Flights uses one fixed input contract; dataset-wide flight search and aggregate review progress
+  are not supplied by the current case-list API.
+- AI integration and safeguards are implemented, but useful real-provider performance beyond the
+  deterministic baseline has not been established. Failures are not model abstentions.
+- Source agreement and human selection do not independently verify historical truth.
+- PostgreSQL-specific concurrent claims/reviews/export races, interrupted broker/worker recovery,
+  backup/restore and a browser persisted-write journey require further controlled validation.
+- Reviewer attribution is an unverified local label. Authentication/RBAC and public deployment
+  hardening are not implemented. Keep the local endpoints private.
+- Physical-device/browser coverage is limited; software-keyboard and Safari/iOS behavior remain
+  unverified. Static hosting must supply SPA fallback for direct links.
+
+## Further documentation
+
+[Intake](docs/FLIGHTS_INTAKE.md) · [Normalization](docs/FLIGHTS_NORMALIZATION.md) ·
+[Discrepancies](docs/FLIGHTS_DISCREPANCIES.md) · [AI](docs/FLIGHTS_AI.md) ·
+[Human review and exports](docs/FLIGHTS_REVIEW_EXPORTS.md) ·
+[UX specification](docs/ui-review/investigate-redesign/UX_SPEC.md) ·
+[Legacy transaction development](docs/DEVELOPMENT.md)
+
+No root project license has been added by this checkpoint. Do not assume an open-source license
+from public availability. The owned UI component sources retain their
+[third-party MIT notice](frontend/src/components/ui/LICENSE); dataset notices are separate.

@@ -42,15 +42,14 @@ def test_async_migration_preserves_analytics_and_marks_legacy_interruption(tmp_p
         command.upgrade(config, "0001")
     with Session(engine) as session:
         for job_id, status in [(1, "completed"), (2, "processing")]:
-            session.add(
-                ProcessingJob(
-                    id=job_id,
-                    filename_original="legacy.csv",
-                    filename_input_saved="input.csv",
-                    filename_cleaned="",
-                    filename_error_report="",
-                    status=status,
-                )
+            # Seed the historical schema, not today's ORM (which includes 0004 columns).
+            session.execute(
+                text("""INSERT INTO processing_jobs
+                (id, filename_original, filename_input_saved, filename_cleaned, filename_error_report,
+                 status, total_rows, valid_rows, invalid_rows, created_at, processed_at)
+                VALUES (:id, 'legacy.csv', 'input.csv', '', '', :status, 0, 0, 0,
+                        '2026-01-01', '2026-01-01')"""),
+                {"id": job_id, "status": status},
             )
         session.add(
             JobAnalysis(
@@ -106,3 +105,50 @@ def test_workspace_migration_preserves_queued_execution(tmp_path):
         assert {"job_imports", "job_records", "import_templates"} <= set(
             inspect(connection).get_table_names()
         )
+
+
+def test_flights_migration_preserves_legacy_and_enforces_constraints(tmp_path):
+    import pytest
+    from sqlalchemy.exc import IntegrityError
+
+    isolated = create_engine(f"sqlite:///{tmp_path}/flights-migration.db")
+    config = Config(str(Path(__file__).resolve().parents[1] / "alembic.ini"))
+    with isolated.connect() as connection:
+        connection.exec_driver_sql("PRAGMA foreign_keys=ON")
+        connection.commit()
+        config.attributes["connection"] = connection
+        command.upgrade(config, "0003")
+        connection.execute(text("""INSERT INTO processing_jobs
+            (id, filename_original, filename_input_saved, filename_cleaned, filename_error_report,
+             status, total_rows, valid_rows, invalid_rows, created_at, processed_at)
+            VALUES (42, 'legacy.csv', 'input.csv', 'output.csv', '', 'completed', 3, 2, 1,
+                    '2026-01-01', '2026-01-01')"""))
+        connection.execute(text("""INSERT INTO job_imports
+            (job_id, options, corrections, changes, records_available)
+            VALUES (42, '{}', '{}', '{}', 0)"""))
+        connection.commit()
+        command.upgrade(config, "head")
+        connection.commit()
+        old = connection.execute(text("SELECT job_kind, input_sha256, valid_rows, filename_cleaned FROM processing_jobs WHERE id=42")).one()
+        assert tuple(old) == ("transactions", None, 2, "output.csv")
+        assert connection.execute(text("SELECT issues FROM job_imports WHERE job_id=42")).scalar() == "[]"
+        assert connection.execute(text("SELECT count(*) FROM flight_observations")).scalar() == 0
+        columns = {column["name"] for column in inspect(connection).get_columns("processing_jobs")}
+        assert {"job_kind", "input_sha256"} <= columns
+        insert = text("""INSERT INTO flight_observations
+            (job_id, tuple_id, row_number, src, flight, sched_dep_time, act_dep_time,
+             sched_arr_time, act_arr_time, issues)
+            VALUES (:job, :key, :row, 's', 'ZZ-1-AAA-BBB', '', '', '', '', '[]')""")
+        connection.execute(insert, {"job": 42, "key": "opaque", "row": 2})
+        connection.commit()
+        for values in [
+            {"job": 42, "key": "opaque", "row": 3},  # Composite observation identity.
+            {"job": 42, "key": "different", "row": 2},  # Position within snapshot.
+            {"job": 999, "key": "orphan", "row": 2},  # Foreign key.
+            {"job": 42, "key": "header", "row": 1},  # Logical data positions.
+        ]:
+            with pytest.raises(IntegrityError):
+                connection.execute(insert, values)
+            connection.rollback()
+        assert connection.execute(text("SELECT count(*) FROM flight_observations")).scalar() == 1
+    isolated.dispose()

@@ -1,3 +1,4 @@
+import { preferredScrollBehavior } from "../../lib/utils";
 import { RecordExplorer } from "./RecordExplorer";
 import { useEffect, useState } from "react";
 import { isActive, statusClass } from "../../lib/job-state";
@@ -127,7 +128,10 @@ export function ResultsPanel({
             </div>
             <div className="flex flex-wrap items-center gap-3">
               {job.status === "completed" && (
-                <a className="button-secondary" href="#history">
+                <a className="button-secondary" href="#history" onClick={(event) => {
+                  event.preventDefault();
+                  document.getElementById("history")?.scrollIntoView({ behavior: preferredScrollBehavior(), block: "start" });
+                }}>
                   View history ↓
                 </a>
               )}
@@ -292,7 +296,7 @@ export function ResultsPanel({
                         setCategoryChange((count) => count + 1);
                         document
                           .getElementById(`records-${job.id}`)
-                          ?.scrollIntoView({ behavior: "smooth" });
+                          ?.scrollIntoView({ behavior: preferredScrollBehavior() });
                       }
                     : undefined
                 }

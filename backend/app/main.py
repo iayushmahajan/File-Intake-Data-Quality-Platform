@@ -7,6 +7,10 @@ from app.api.routes.health import router as health_router
 from app.jobs.routes import router as jobs_router
 from app.records.routes import router as records_router
 from app.intake.routes import imports_router, uploads_router
+from app.intake.flights_routes import router as flights_router
+from app.reconciliation.routes import router as discrepancy_router
+from app.reconciliation.investigation_routes import router as investigation_router
+from app.reconciliation.review_routes import router as review_router
 from app.core.config import APP_DESCRIPTION, APP_NAME, APP_VERSION, CORS_ORIGINS
 from app.core.db import migrate_database
 from app.core.logging import configure_logging, get_logger
@@ -34,6 +38,10 @@ app = FastAPI(
 app.include_router(health_router)
 app.include_router(uploads_router)
 app.include_router(imports_router)
+app.include_router(flights_router)
+app.include_router(discrepancy_router)
+app.include_router(investigation_router)
+app.include_router(review_router)
 app.include_router(records_router)
 app.include_router(jobs_router)
 

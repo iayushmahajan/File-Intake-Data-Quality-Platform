@@ -1,0 +1,49 @@
+{
+  "manifest_version": 1,
+  "dataset_type": "raha_flights_v1",
+  "repository": "https://github.com/BigDaMa/raha",
+  "upstream_commit": "7be1334b8c7bbdac3f47ef514fb3e1e8c5fc181c",
+  "upstream_commit_date": "2025-06-05T12:00:24Z",
+  "flights_last_change_commit": "82f3323c02f32b1154342d76cbcd3cdeb2233914",
+  "retrieved_on": "2026-11-11",
+  "retrieval_method": "GitHub connector Git blob GET; UTF-8 bytes verified against Git blob SHA-1",
+  "repository_license": "Apache-2.0",
+  "repository_license_url": "https://github.com/BigDaMa/raha/blob/7be1334b8c7bbdac3f47ef514fb3e1e8c5fc181c/LICENSE.md",
+  "dataset_specific_license": "Not found in the inspected pinned Flights directory or repository notices; underlying third-party rights remain unresolved",
+  "use_policy": "Local research copies only; no raw repository inclusion, reference-answer screenshots, public dataset demo or redistribution clearance established",
+  "header": [
+    "tuple_id", "src", "flight", "sched_dep_time", "act_dep_time",
+    "sched_arr_time", "act_arr_time"
+  ],
+  "files": {
+    "observed": {
+      "relative_local_path": "observed/dirty.csv",
+      "upstream_path": "datasets/flights/dirty.csv",
+      "url": "https://raw.githubusercontent.com/BigDaMa/raha/7be1334b8c7bbdac3f47ef514fb3e1e8c5fc181c/datasets/flights/dirty.csv",
+      "git_blob_sha1": "a3a16c689e0df59f2b37f78cd9116ccc1665bfe6",
+      "sha256": "1b5c1afa10aa0e7c20fd7e14d05c56772715b2771aa0f5fa67ed1709e1eecd46",
+      "bytes": 154776,
+      "rows": 2376,
+      "encoding": "UTF-8, ASCII subset, no BOM",
+      "line_endings": "2377 CRLF sequences; no other LF bytes"
+    },
+    "evaluation_reference": {
+      "relative_local_path": "reference/clean.csv",
+      "upstream_path": "datasets/flights/clean.csv",
+      "url": "https://raw.githubusercontent.com/BigDaMa/raha/7be1334b8c7bbdac3f47ef514fb3e1e8c5fc181c/datasets/flights/clean.csv",
+      "git_blob_sha1": "d4092fc1c8dffe11259011b9640bae99f5875483",
+      "sha256": "0acfcfd8985b06fdd363965c9e8d9522c43e7589a93d79ae7dc311e1c37fdf3b",
+      "bytes": 173159,
+      "rows": 2376,
+      "encoding": "UTF-8, ASCII subset, no BOM",
+      "line_endings": "2377 CRLF sequences; no other LF bytes"
+    }
+  },
+  "research_sources": [
+    "https://github.com/BigDaMa/raha/blob/7be1334b8c7bbdac3f47ef514fb3e1e8c5fc181c/README.md",
+    "https://doi.org/10.1145/3299869.3324956",
+    "https://doi.org/10.14778/3407790.3407801",
+    "https://www.vldb.org/pvldb/vol13/p1948-mahdavi.pdf",
+    "https://arxiv.org/abs/1503.00303"
+  ]
+}
