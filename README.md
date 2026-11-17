@@ -82,8 +82,8 @@ Raw benchmark CSVs and clean-reference files are not included in this repository
 
 </details>
 
-[Layout verification findings](docs/ui-review/layout-and-contextual-details/README.md) ·
-[Scrolling, resizing and review-dialog verification](docs/ui-review/panel-and-review-interactions/README.md)
+[Product screenshot collection](docs/screenshots/product/README.md) ·
+[UI interaction verification](docs/VALIDATION.md#ui-interaction-evidence)
 
 ## Architecture
 
@@ -116,7 +116,7 @@ flowchart LR
 
 Main source areas: `backend/app/intake/`, `backend/app/reconciliation/`, `backend/app/jobs/`,
 `backend/app/services/` and `frontend/src/features/`. See the
-[engineering walkthrough](docs/HANDOFF.md) for function owners and operational boundaries.
+[architecture guide](docs/ARCHITECTURE.md) for module ownership and operational boundaries.
 The original transaction feature remains available at an unadvertised compatibility route;
 its backend, migration history and existing data have not been removed.
 
@@ -150,7 +150,7 @@ password. Do not commit it or print resolved Compose configuration: that contain
 The launcher sets the frontend API URL explicitly, and the dedicated API allows both exact
 frontend origins above. No provider credential is required; the dedicated Compose configuration
 leaves AI unconfigured. Provider configuration/evaluation is a separate, controlled task described
-in [the AI contract](docs/FLIGHTS_AI.md).
+in [the AI contract](docs/AI_AND_EVALUATION.md).
 
 The project identity is **`reconcile-workbench`**, using its own PostgreSQL, Redis and
 upload/export volumes. Do not combine `compose.reconcile.yaml` with `docker-compose.yml` or use
@@ -169,7 +169,7 @@ bash scripts/reconcile.sh stop
 ```
 
 Stop the host frontend with Ctrl+C. Details, volume identities and restart guidance:
-[dedicated local runtime](docs/LOCAL_RUNTIME.md). Service startup/stop commands here were not
+[dedicated local runtime](docs/DEVELOPMENT.md). Service startup/stop commands here were not
 executed during release preparation.
 
 ## Supported dataset and evaluation
@@ -187,7 +187,7 @@ grouping, not production aviation identity matching or arbitrary-schema reconcil
 
 The source is [BigDaMa/raha](https://github.com/BigDaMa/raha), pinned by commit and SHA-256 in
 [the source manifest](docs/flights-source-manifest.json). Research attribution and dataset-rights
-uncertainty are recorded in [Flights provenance](docs/FLIGHTS_BENCHMARK.md). Upstream project
+uncertainty are recorded in [Flights provenance](docs/AI_AND_EVALUATION.md#dataset-provenance). Upstream project
 licensing does not establish clearance for all underlying dataset rights. The screenshots are
 limited documentation views; they are not a license grant to redistribute the benchmark.
 
@@ -195,7 +195,7 @@ Keep raw benchmark files outside the repository, Docker build context and applic
 The operational application uses dirty observations only. **The clean reference belongs solely
 to offline evaluation**, after outputs are frozen; it is not investigation evidence or model input.
 No authentic benchmark repair-accuracy result is claimed. See the
-[offline evaluation contract and CLI](docs/FLIGHTS_EVALUATION.md).
+[offline evaluation contract and CLI](docs/AI_AND_EVALUATION.md#frozen-output-offline-evaluation).
 
 ## Tests and validation
 
@@ -229,7 +229,7 @@ read-back history, unchanged observations and byte-verified frozen artifacts. It
 browser-level persisted writes, PostgreSQL concurrency or paid-provider validation.
 
 Current release-check commands and results are recorded in
-[the checkpoint audit](docs/RELEASE_CHECKPOINT.md); historical gallery counts remain labeled by run.
+[the validation record](docs/VALIDATION.md); earlier results are dated separately.
 
 ## Current status and limitations
 
@@ -250,11 +250,9 @@ local runtime validation. It is **not a proven production deployment**.
 
 ## Further documentation
 
-[Intake](docs/FLIGHTS_INTAKE.md) · [Normalization](docs/FLIGHTS_NORMALIZATION.md) ·
-[Discrepancies](docs/FLIGHTS_DISCREPANCIES.md) · [AI](docs/FLIGHTS_AI.md) ·
-[Human review and exports](docs/FLIGHTS_REVIEW_EXPORTS.md) ·
-[UX specification](docs/ui-review/investigate-redesign/UX_SPEC.md) ·
-[Legacy transaction development](docs/DEVELOPMENT.md)
+[Architecture](docs/ARCHITECTURE.md) · [Development](docs/DEVELOPMENT.md) ·
+[Reconciliation](docs/RECONCILIATION.md) · [AI and evaluation](docs/AI_AND_EVALUATION.md) ·
+[Validation](docs/VALIDATION.md)
 
 No root project license has been added by this checkpoint. Do not assume an open-source license
 from public availability. The owned UI component sources retain their

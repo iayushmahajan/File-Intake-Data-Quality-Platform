@@ -20,9 +20,9 @@ source remains separately retained in the parent directory.
 Desktop viewport was 1440×900; mobile was 390×844. Full-page images extend below the viewport.
 All six SHA-256 values match their pre-cleanup originals; images were moved, not recompressed.
 
-[UI verification history](../../ui-review/README.md) ·
-[Final interaction results](../../ui-review/panel-and-review-interactions/README.md) ·
-[Dataset provenance and rights caveat](../../FLIGHTS_BENCHMARK.md)
+[Validation history](../../VALIDATION.md) ·
+[UI interaction evidence](../../VALIDATION.md#ui-interaction-evidence) ·
+[Dataset provenance and rights caveat](../../AI_AND_EVALUATION.md#dataset-provenance)
 
 Superseded captures remain recoverable through Git history at commit `e406204`.
 Do not copy raw dirty/reference CSVs, secrets or unapproved new captures into this directory.

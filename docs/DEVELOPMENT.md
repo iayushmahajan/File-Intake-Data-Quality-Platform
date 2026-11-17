@@ -1,128 +1,169 @@
-# Legacy transaction development reference
+# Development and operations
 
-For column mapping, saved templates, record exploration and correction workflows, see the [import workspace guide](IMPORT_WORKSPACE.md).
+The normal local runtime is **`reconcile-workbench`**, defined by `compose.reconcile.yaml` and
+`scripts/reconcile.sh`. The original `file-intake-processing-service` project, volumes and
+`backend/data` are separate retained resources. Do not combine the two Compose files, use the
+old `run.sh` for this runtime, or rename resource identities as a cosmetic cleanup.
 
-This preserves transaction-specific configuration, CSV rules and local Python setup. The current Flights product and contracts are in the [README](../README.md). API startup applies migrations: follow the [backup and rollout gates](HANDOFF.md) before executing startup commands against any existing storage.
+## Setup and access
 
-## CSV schema and validation
+Prerequisites: Docker with Compose v2 and context `default`, Node.js 22, pnpm **10.32.1**, and
+Python 3.10+ for scripts/tests. From the repository root, for a **new dedicated environment**:
 
-All headers below are required and case-sensitive. Duplicate headers are rejected. Extra named columns are accepted but not preserved in outputs. Rows with a different field count are rejected. A header-only or empty file is a failed job.
+```bash
+pnpm --dir frontend install --frozen-lockfile
+bash scripts/reconcile.sh init
+bash scripts/reconcile.sh config
+bash scripts/reconcile.sh up
+bash scripts/reconcile.sh ps
+```
 
-| Field | Rule |
+In another terminal:
+
+```bash
+bash scripts/reconcile.sh frontend
+```
+
+Application: **http://localhost:5174/** or http://127.0.0.1:5174/.
+API: http://127.0.0.1:8011/health and http://127.0.0.1:8011/docs.
+PostgreSQL and Redis have no published host ports. Services are `db`, `redis`, `api`, `worker`
+and `dispatcher`; the frontend runs on the host using existing Vite, not a second application.
+
+`init` preserves an existing regular mode-0600 settings file or creates ignored
+`.env.reconcile.local` with a random database password. Preserve it with the database volumes:
+regenerating it does not change a password inside an initialized PostgreSQL database.
+`config` is quiet by default; explicit resolved output contains secrets and must not be published.
+The launcher clears inherited shell configuration and fixes project/file/context explicitly.
+Root/backend/frontend environment examples describe other local configurations; they do not
+silently replace the dedicated launcher settings.
+
+`up` builds the backend image then recreates only dedicated containers, retaining storage.
+API startup automatically runs Alembic upgrades. For an already provisioned stopped environment,
+`bash scripts/reconcile.sh start` starts its existing containers. Stop without removing volumes:
+
+```bash
+bash scripts/reconcile.sh stop
+```
+
+Stop host Vite with Ctrl+C; restart with `bash scripts/reconcile.sh frontend`. For deliberate
+backend source updates use `up` only after the migration/storage gate below. These are operator
+instructions, not permission to recreate an existing environment during a documentation task.
+
+## Configuration and storage
+
+| Setting/resource | Dedicated value |
 |---|---|
-| `customer_id` | Nonempty; repeated customer IDs are allowed across transactions |
-| `email` | Nonempty, maximum 254 characters; basic structural check excluding whitespace and repeated `@` |
-| `country` | DE, FR, IN, US or GB |
-| `signup_date` | Calendar date parsed with `%Y-%m-%d` |
-| `order_amount` | Finite, non-negative decimal representable in numeric profiles |
-| `currency` | EUR, USD or INR |
-| `payment_method` | card, paypal or bank_transfer |
-| `order_status` | completed, pending or cancelled |
-| `product_category` | Nonempty; free text |
-| `quantity` | Positive integer |
-| `discount_percent` | Finite decimal from 0 through 100 |
-| `last_login_date` | Calendar date, on or after signup |
+| PostgreSQL database / user | `reconcile_workbench` / `reconcile_workbench` |
+| PostgreSQL volume | `reconcile-workbench_postgres_data` |
+| Redis volume | `reconcile-workbench_redis_data` |
+| Upload/export volume | `reconcile-workbench_app_data` → `/app/data` |
+| Broker / queue | `redis://redis:6379/0` / `reconcile-workbench` |
+| Private network | `reconcile-workbench_private` (internal) |
+| API-only ingress | `reconcile-workbench_ingress` |
+| Backend image | `reconcile-workbench-backend:local` |
+| Frontend API URL | `VITE_API_BASE_URL=http://127.0.0.1:8011`, set by launcher |
+| Dedicated CORS origins | `http://127.0.0.1:5174,http://localhost:5174` |
 
-Cross-field rules:
+API/worker/dispatcher share the new app volume, database, broker and queue. No original volume,
+`backend/data` bind mount, benchmark directory or Docker socket is mounted. DB/Redis/worker/
+dispatcher use only the private network; API also has ingress for loopback publication.
+All processes must use compatible backend/schema versions before accepting Flights work.
 
-- German and French records require EUR. Other allowed countries can use any supported currency; this is not a universal currency-conversion policy.
-- Completed orders require a nonzero amount.
-- Later records with identical required values after trimming/case folding are rejected as duplicate records. Customer ID alone is not a transaction identity.
+`app/core/config.py` supports `DATABASE_URL`, `DATA_DIR`, `MAX_UPLOAD_BYTES` (10 MiB default),
+`CELERY_BROKER_URL`, `CELERY_QUEUE`, job retry/lease settings and comma-separated `CORS_ORIGINS`.
+The general CORS default permits localhost/127.0.0.1 on 5173; the dedicated Compose override is
+5174. Overrides replace defaults, trim whitespace and ignore empty entries.
+Never print provider keys/database URLs containing passwords.
 
-Normalization uppercases IDs/countries/currencies, lowercases email/payment/status, trims categories, formats dates, and writes amount/discount to two decimal places. Rejected rows retain their supplied field values and list every detected error. `row_number` counts logical CSV records including the header, so the first data record is 2; multiline quoted fields are one record.
+The dedicated Compose explicitly leaves `OPENAI_API_KEY` empty. A host key alone does not enable
+AI because the launcher clears inherited settings. Provider/model configuration needs a separately
+reviewed isolated setup; see [AI boundaries](AI_AND_EVALUATION.md). No public access-control/RBAC
+system is implemented: keep write/export/cost-incurring endpoints local.
 
-Email validation is a structural check, not a deliverability check. No external lookup is performed.
+## Safe verification
 
-## Deterministic quality score
-
-The platform score is calculated by backend code and persisted. AI scores do not replace it.
-
-| Dimension | Measurement | Weight |
-|---|---|---:|
-| Validity | Accepted records / all records × 100 | 60% |
-| Completeness | Nonempty required cells / all required cells × 100 | 20% |
-| Uniqueness | (All records − later duplicate records) / all records × 100 | 10% |
-| Anomaly health | Accepted records without heuristic anomalies / accepted records × 100 | 10% |
-
-Dimension values are rounded to two decimals; the weighted overall score is rounded to one decimal. If there are no accepted records, anomaly health is unavailable and remaining weights are normalized to sum to one. Empty datasets have no score. Failed jobs do not display a quality score. Completeness and uniqueness are measured over all parsed data records; profiles and anomaly health describe accepted records only.
-
-These dimensions overlap deliberately: validity is the dominant gate, while the remaining dimensions explain additional aspects of quality. The weights are a documented product choice, not a statistical quality guarantee.
-
-## Analytics and visualizations
-
-- Acceptance donut with the same counts and percentages available as text.
-- Error-category bars; one rejected row can produce several issues.
-- Numeric count/min/max/average for amount, quantity and discount.
-- Top three values for country, currency, payment method, status and category.
-- Repeated error combinations and searchable preview of the first 100 rejected records.
-- Anomalies: amount above 1,000 in its original currency, quantity above 20, discount above 50%. These review signals do not reject records.
-- First 100 anomaly signals retained for display; total anomaly count remains available.
-
-Order amounts are **not converted between currencies**. Aggregate amount statistics and thresholds are descriptive source-unit measurements, not comparable financial totals. Anomaly record numbers refer to the original logical CSV records.
-
-## Alternative local Python development — SQLite
-
-Use one worker process for SQLite; PostgreSQL is the preferred multi-process configuration. SQLite still serializes writers and is not intended for scaling worker concurrency.
+Python dependency setup, if needed:
 
 ```bash
-# Repository root: start only the local Redis broker
-# Use a separate Compose project if another application stack is already running.
-docker compose up -d redis
-cd backend
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cp -n .env.example .env
-alembic upgrade head
-uvicorn app.main:app --reload
+python3 -m venv backend/.venv
+backend/.venv/bin/python -m pip install -r backend/requirements.txt
 ```
 
-In two additional terminals, each in `backend/` with `.venv` activated:
+From the repository root:
 
 ```bash
-celery -A app.core.celery_app:celery_app worker --loglevel=INFO --concurrency=1
+timeout 180s env PYTHONDONTWRITEBYTECODE=1 backend/.venv/bin/python -m pytest -p no:cacheprovider backend/tests -q
+python3 -B -m unittest discover -s scripts -p 'test_flights_*.py' -q
+pnpm --dir frontend test
+pnpm --dir frontend build
+PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/path/to/existing/chromium pnpm --dir frontend test:foundation
+bash -n scripts/reconcile.sh
+git diff --check
 ```
+
+Backend `conftest.py` sets a new temporary SQLite database/storage, memory transport and empty AI
+key **before imports**; its schema creation/drop/migration affects only that state. It deliberately
+overrides a supplied `DATABASE_URL`, so this suite is not a PostgreSQL concurrency test. TestClient
+can stall in a restricted sandbox; use a bounded approved rerun with the same isolated fixtures,
+optionally `-o faulthandler_timeout=45`, and report timeouts as failures of that run.
+The standalone script tests use synthetic external temporary files without app startup.
+The foundation harness starts its own temporary Vite/Chromium, intercepts synthetic APIs and
+closes only its own processes. Its outputs stay under `/tmp`, not in the product gallery.
+
+`pnpm --dir frontend test:e2e` and `scripts/verify_async_stack.py` are **state-changing integration
+checks**, not routine read-only checks: they create services/resources, can occupy API port 8011,
+and exercise worker death/broker loss before removing their owned resources. Inspect them and
+prove isolation before separately authorizing execution. No normal API startup is needed for
+ordinary isolated unit/API tests. Current results are in [validation](VALIDATION.md).
+
+## Migration, backup and recovery gate
+
+Head is `0006`, chain `0001 → 0002 → 0003 → 0004 → 0005 → 0006`. Startup
+`app/main.py::lifespan` calls `migrate_database`; starting the API is a migration operation.
+0002 introduced durable execution, 0003 transaction records/templates, 0004 Flights observations
+and legacy-preserving kind/hash/issues fields, 0005 AI history/claim constraints, and 0006 review
+and frozen-export metadata. Destructive downgrades are disabled; rollback requires an approved
+restore with retention of newer history/files, not a casual Alembic downgrade.
+
+Before upgrading retained data:
+
+1. Verify actual project/container labels, database/user/revision, mounts and storage ownership.
+2. Coordinate intake/review/export writes and workers; back up PostgreSQL **and** original/output
+   file storage plus required private configuration. A database-only backup cannot restore artifacts.
+3. Restore into separately authorized disposable resources with unique identity, ports, volumes,
+   queue and `DATA_DIR`; verify row/file hashes and legacy accessibility there.
+4. Exercise sequential migrations and preservation constraints, PostgreSQL concurrent AI claims,
+   review revisions, idempotent retries/export races and Redis/Celery interruption/recovery.
+5. Approve the target rollout only after restore tests and a clear maintenance/rollback plan.
+
+SQLite is retained for tests/single-worker development, not multi-process scaling. Do not move
+existing SQLite or old Compose data to PostgreSQL by merely changing a URL/project name.
+No automatic retention/orphan cleanup or terminal-job retry UI is provided.
+
+## Troubleshooting
+
+Read-only checks for the dedicated project:
 
 ```bash
-python -m app.dispatcher
+bash scripts/reconcile.sh ps
+bash scripts/reconcile.sh logs api worker dispatcher
+bash scripts/reconcile.sh config
+curl --fail http://127.0.0.1:8011/health
+docker --context default exec reconcile-workbench-api-1 alembic current
+docker --context default exec reconcile-workbench-redis-1 redis-cli ping
 ```
 
-Then start the frontend with `pnpm dev` in `frontend/`. API, worker and dispatcher must use the same `DATABASE_URL`, `DATA_DIR`, broker and queue configuration. `backend/.env.example` uses localhost Redis; the repository-root `.env.example` uses `redis://redis:6379/0` for Compose. Compose reads `CELERY_BROKER_URL` from the environment with that service hostname as its default. If an older root `.env` contains a localhost broker URL, change that value to the Redis service hostname before starting Compose.
-
-Default SQLite remains `backend/file_processing.db`; files remain in `backend/data/`. Switching to PostgreSQL does not transfer SQLite history automatically or delete it. Back up database metadata and files together.
-
-## Migrations
-
-```bash
-cd backend
-source .venv/bin/activate
-alembic upgrade head
-alembic current
-```
-
-Migration `0001` adopts existing job history and creates the analytics table/indexes. Migration `0002` adds durable dispatch/lease metadata. Older interrupted synchronous `pending`/`processing` jobs become failed with a clear explanation; completed history and AI reports are preserved. Older jobs without analytics remain downloadable and display an explicit historical-data notice. Destructive downgrade is disabled; restore a reviewed backup instead. The default single API process performs startup migrations; larger deployments should run migrations once before starting replicas.
-
-## Configuration
-
-| Variable | Default / purpose |
-|---|---|
-| `DATABASE_URL` | SQLite at `backend/file_processing.db`; supports `postgresql+psycopg://...` |
-| `DATA_DIR` | `backend/data`, with input/output subdirectories |
-| `MAX_UPLOAD_BYTES` | 10485760 (10 MiB), configurable file-content limit |
-| `CORS_ORIGINS` | Comma-separated explicit browser origins |
-| `VITE_API_BASE_URL` | Frontend API address, default `http://localhost:8000` |
-| `OPENAI_API_KEY` | Empty; optional existing provider credential |
-| `OPENAI_BASE_URL` | Existing repository default `https://models.inference.ai.azure.com` |
-| `OPENAI_MODEL` | Existing repository default `gpt-5-mini` |
-| `POSTGRES_PASSWORD` | Compose local database credential |
-| `CELERY_BROKER_URL` | Local Python: `redis://localhost:6379/0`; Compose/root example: `redis://redis:6379/0`; environment override supported |
-| `CELERY_QUEUE` | `csv-processing`; must match dispatcher and workers |
-| `JOB_TIME_LIMIT_SECONDS` | 120 hard limit; soft limit is two seconds earlier |
-| `JOB_LEASE_SECONDS` | 150; must exceed the hard limit by at least five seconds |
-| `JOB_MAX_ATTEMPTS` | 3 execution attempts |
-| `DISPATCH_INTERVAL_SECONDS` | 2 seconds between dispatch/recovery cycles |
-| `JOB_REDISPATCH_SECONDS` | 30 seconds before republishing unclaimed work |
-| `JOB_QUEUE_TIMEOUT_SECONDS` | 600 seconds without a worker claim before failure |
-| `PUBLISH_MAX_FAILURES` | 8 consecutive failed publication attempts |
-
-The API exposes output basenames, not internal attempt paths or Celery task IDs; downloads resolve files by application job ID. `.env` files are ignored; `.env.example` files contain no secrets. The Docker build excludes local credentials, databases, virtual environments and runtime data.
+- API docs load but browser requests fail: inspect the actual tab origin, request URL and Console/
+  Network error. localhost and 127.0.0.1 are distinct origins; compare exact CORS settings and
+  `VITE_API_BASE_URL`. A stopped browser wait does not cancel accepted server work.
+- Pending/queued jobs: inspect dispatcher/worker health and matching queue/broker/database.
+  Waiting expires after its configured limit; lease recovery requires the dispatcher to run.
+- Processing after worker death: await lease expiry/recovery; do not edit job rows or delete inputs.
+- Missing input/output: verify the shared app volume. Missing input fails processing; missing
+  published artifacts return safe errors rather than erasing history. Restore ownership, not fake files.
+- Repeated timeouts: inspect file complexity/memory; change hard limit and lease together only
+  deliberately. Keep clocks aligned for UTC lease checks.
+- Docker unavailable in WSL: verify Docker Desktop integration/context. Diagnose client credential
+  helpers without overwriting the user's Docker settings or touching unrelated projects.
+- Read/write conflicts: refresh after 409. For an unknown write outcome retain the exact request
+  ID/payload; do not submit a different decision merely to clear the message.
