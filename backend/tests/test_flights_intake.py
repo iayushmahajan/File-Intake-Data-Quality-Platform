@@ -138,11 +138,15 @@ def test_identity_issues_are_retained_and_repeated_source_claims_not_rejected(cl
     (csv_bytes([observation(), observation("2")[:-1]]), "column_count", 3),
     (csv_bytes([observation() + ["extra"]]), "column_count", 2),
     (csv_bytes([]) + b'"unclosed', "csv_structure", 2),
-    (csv_bytes([observation(value="\x00")]), "null_character", 2),
+    # A later NUL must not reclassify an earlier quoting error.
+    (csv_bytes([]) + b'"bad"quote\r\n\x00', "csv_structure", 2),
+    (csv_bytes([observation(value="__NUL_BYTE__")]).replace(b"__NUL_BYTE__", b"\x00"), "null_character", 2),
     (csv_bytes([observation("x" * 1025)]), "tuple_id_size", 2),
     (b"\xff", "encoding", None),
 ])
 def test_invalid_files_fail_without_partial_publication(client, content, code, row_number):
+    if code == "null_character":
+        assert content.count(b"\x00") == 1
     job_id = submit(client, content)
     assert process_job(job_id) == "failed"
     failed = detail(client, job_id)

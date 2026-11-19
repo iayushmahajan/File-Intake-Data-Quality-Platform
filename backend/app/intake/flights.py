@@ -119,6 +119,9 @@ def process_flights_file(path: Path, expected_sha256: str) -> FlightsResult:
                         row_number=row_number, message="src contains surrounding whitespace or control characters."))
             observations.append(FlightObservationData(row_number=row_number, issues=issues, **row))
     except csv.Error as error:
+        # Python 3.10 rejects NUL before yielding the parsed cells.
+        if str(error) == "line contains NUL":
+            raise FlightsImportError("null_character", "CSV cells cannot contain NUL characters.", row_number) from error
         raise FlightsImportError("csv_structure", "Malformed CSV quoting or field size.", row_number) from error
     if not observations:
         raise FlightsImportError("empty_dataset", "CSV contains no observations.")
