@@ -1,3 +1,4 @@
+import { preferredScrollBehavior } from "../../lib/utils";
 import { useEffect, useRef, useState } from "react";
 import { api, API_BASE_URL } from "../../lib/api";
 import type { JobDetail, UploadResult } from "../../types/jobs";
@@ -391,7 +392,7 @@ export function RecordExplorer({
                       setTimeout(
                         () =>
                           editor.current?.scrollIntoView?.({
-                            behavior: "smooth",
+                            behavior: preferredScrollBehavior(),
                             block: "nearest",
                           }),
                         0,

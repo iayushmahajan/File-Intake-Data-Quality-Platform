@@ -5,3 +5,7 @@
 __pycache__
 .pytest_cache
 data
+*.db-*
+# Benchmark bytes must never be baked into the operational image.
+dirty.csv
+clean.csv

@@ -1,0 +1,119 @@
+# Dedicated runtime. Never combine this file with docker-compose.yml.
+name: reconcile-workbench
+
+x-app: &app
+  image: reconcile-workbench-backend:local
+  pull_policy: never
+  environment:
+    DATABASE_URL: postgresql+psycopg://reconcile_workbench:${RECONCILE_DB_PASSWORD:?Run scripts/reconcile.sh init first}@db:5432/reconcile_workbench
+    DATA_DIR: /app/data
+    CELERY_BROKER_URL: redis://redis:6379/0
+    CELERY_QUEUE: reconcile-workbench
+    CORS_ORIGINS: http://127.0.0.1:5174,http://localhost:5174
+    OPENAI_API_KEY: ""
+    JOB_TIME_LIMIT_SECONDS: "120"
+    JOB_LEASE_SECONDS: "150"
+    JOB_MAX_ATTEMPTS: "3"
+    DISPATCH_INTERVAL_SECONDS: "2"
+    JOB_REDISPATCH_SECONDS: "30"
+    JOB_QUEUE_TIMEOUT_SECONDS: "600"
+    PUBLISH_MAX_FAILURES: "8"
+  volumes:
+    - app_data:/app/data
+  networks: [private]
+  restart: unless-stopped
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: reconcile_workbench
+      POSTGRES_USER: reconcile_workbench
+      POSTGRES_PASSWORD: ${RECONCILE_DB_PASSWORD:?Run scripts/reconcile.sh init first}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks: [private]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U reconcile_workbench -d reconcile_workbench"]
+      start_period: 20s
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--appendfsync", "everysec"]
+    volumes:
+      - redis_data:/data
+    networks: [private]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  api:
+    <<: *app
+    # A non-internal API-only bridge is required for host port publication.
+    networks: [private, ingress]
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:8011:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      start_period: 30s
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  worker:
+    <<: *app
+    pull_policy: never
+    command: ["celery", "-A", "app.core.celery_app:celery_app", "worker", "--loglevel=INFO", "--concurrency=2", "--hostname=worker@%h"]
+    depends_on:
+      api:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A app.core.celery_app:celery_app inspect ping --destination worker@$$HOSTNAME --timeout 5"]
+      interval: 20s
+      timeout: 10s
+      start_period: 20s
+      retries: 5
+    stop_grace_period: 130s
+
+  dispatcher:
+    <<: *app
+    pull_policy: never
+    command: ["python", "-m", "app.dispatcher"]
+    depends_on:
+      api:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import time,pathlib; assert time.time()-pathlib.Path('/tmp/intake-dispatcher-heartbeat').stat().st_mtime < 60"]
+      interval: 20s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+
+networks:
+  private:
+    internal: true
+  ingress: {}
+
+volumes:
+  postgres_data:
+  redis_data:
+  app_data:

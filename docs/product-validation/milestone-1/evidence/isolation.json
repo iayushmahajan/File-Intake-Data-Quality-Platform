@@ -1,0 +1,61 @@
+{
+  "existing_database": "/tmp/file-intake-tests-ayazlfd0/tests.db",
+  "root_uid": 1000,
+  "uid": 1000,
+  "root_mode": "0o700",
+  "file_nlink": 1,
+  "symlinks": false,
+  "writable": true,
+  "open_file_owners": [],
+  "protected_mount_overlap": [],
+  "revision": [
+    [
+      "0006"
+    ]
+  ],
+  "table_counts": {
+    "alembic_version": 1,
+    "processing_jobs": 0,
+    "job_analyses": 0,
+    "job_executions": 0,
+    "import_templates": 0,
+    "job_imports": 0,
+    "job_records": 0,
+    "flight_observations": 0,
+    "flight_investigations": 0,
+    "flight_review_decisions": 0,
+    "flight_reviewed_exports": 0
+  },
+  "mounts": [
+    {
+      "container": "/reconcile-workbench-db-1",
+      "type": "volume",
+      "source": "/var/lib/docker/volumes/reconcile-workbench_postgres_data/_data",
+      "destination": "/var/lib/postgresql/data"
+    },
+    {
+      "container": "/reconcile-workbench-redis-1",
+      "type": "volume",
+      "source": "/var/lib/docker/volumes/reconcile-workbench_redis_data/_data",
+      "destination": "/data"
+    },
+    {
+      "container": "/reconcile-workbench-api-1",
+      "type": "volume",
+      "source": "/var/lib/docker/volumes/reconcile-workbench_app_data/_data",
+      "destination": "/app/data"
+    },
+    {
+      "container": "/reconcile-workbench-worker-1",
+      "type": "volume",
+      "source": "/var/lib/docker/volumes/reconcile-workbench_app_data/_data",
+      "destination": "/app/data"
+    },
+    {
+      "container": "/reconcile-workbench-dispatcher-1",
+      "type": "volume",
+      "source": "/var/lib/docker/volumes/reconcile-workbench_app_data/_data",
+      "destination": "/app/data"
+    }
+  ]
+}

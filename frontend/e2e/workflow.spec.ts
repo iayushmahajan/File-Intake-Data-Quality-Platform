@@ -8,7 +8,7 @@ test("upload, inspect analytics, reopen history, preview and handle failure", as
 }, info) => {
   const failures: string[] = [];
   page.on("pageerror", (error) => failures.push(error.message));
-  await page.goto("/");
+  await page.goto("/legacy/transactions");
   await page.getByLabel("CSV file").setInputFiles({
     name: "portfolio-demo.csv",
     mimeType: "text/csv",
@@ -90,7 +90,7 @@ test("upload, inspect analytics, reopen history, preview and handle failure", as
 });
 test("mobile layout has no horizontal page overflow", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
+  await page.goto("/legacy/transactions");
   await expect(
     page.getByRole("heading", { name: /File Intake/ }),
   ).toBeVisible();
@@ -115,7 +115,7 @@ test("map partner columns, save a template, correct rejected data and preserve t
     good,
     good.replace("C1,", "C2,").replace("alice@example.com", "bad-email"),
   ].join("\n");
-  await page.goto("/");
+  await page.goto("/legacy/transactions");
   await page
     .getByLabel("CSV file")
     .setInputFiles({
@@ -202,7 +202,7 @@ test("map partner columns, save a template, correct rejected data and preserve t
 test("job navigation requires discarding drafts and submitted corrections leave no stale guard", async ({
   page, request,
 }) => {
-  await page.goto("/");
+  await page.goto("/legacy/transactions");
   await page.getByLabel("CSV file").setInputFiles({
     name: "draft-parent.csv", mimeType: "text/csv",
     buffer: Buffer.from([header, good, good.replace("C1,", "C2,").replace("alice@example.com", "bad-email")].join("\n")),
@@ -238,7 +238,7 @@ test("job navigation requires discarding drafts and submitted corrections leave 
   await expect(explorer.getByText("Field validation passed.", { exact: true })).toBeVisible();
   await expect(explorer.getByRole("button", { name: "Reprocess corrected dataset", exact: true })).toBeEnabled();
   await openTarget.click();
-  await dialog.getByRole("button", { name: "Discard", exact: true }).click();
+  await dialog.getByRole("button", { name: "Discard and continue", exact: true }).click();
   await expect(page.getByRole("heading", { name: "draft-target.csv", exact: true })).toBeVisible();
   await expect(page).toHaveURL(new RegExp(`job=${target}(?:&|$)`));
   await page.getByRole("button", { name: `#${parent} · draft-parent.csv`, exact: true }).click();

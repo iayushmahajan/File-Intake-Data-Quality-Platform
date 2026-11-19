@@ -1,0 +1,104 @@
+{
+  "requests": [
+    "GET http://127.0.0.1:8011/api/v1/flights/jobs/5",
+    "GET http://127.0.0.1:8011/api/v1/flights/jobs/5",
+    "GET http://127.0.0.1:8011/api/v1/flights/jobs/5/discrepancies/fld_4493166864f41442524a7933b59a83c3d32bb6793447fe9f16228a2560bf938e",
+    "GET http://127.0.0.1:8011/api/v1/flights/jobs/5/discrepancies?kind=attention&page=1&page_size=15",
+    "GET http://127.0.0.1:8011/api/v1/flights/jobs/5/discrepancies/fld_4493166864f41442524a7933b59a83c3d32bb6793447fe9f16228a2560bf938e",
+    "GET http://127.0.0.1:8011/api/v1/flights/jobs/5/discrepancies/fld_4493166864f41442524a7933b59a83c3d32bb6793447fe9f16228a2560bf938e/investigations",
+    "GET http://127.0.0.1:8011/api/v1/flights/jobs/5/discrepancies/fld_4493166864f41442524a7933b59a83c3d32bb6793447fe9f16228a2560bf938e/review",
+    "GET http://127.0.0.1:8011/api/v1/flights/jobs/5/discrepancies/fld_4493166864f41442524a7933b59a83c3d32bb6793447fe9f16228a2560bf938e/review/history?page=1&page_size=5",
+    "GET http://127.0.0.1:8011/api/v1/flights/jobs/5",
+    "GET http://127.0.0.1:8011/api/v1/flights/jobs/5",
+    "GET http://127.0.0.1:8011/api/v1/flights/jobs/5/discrepancies/fld_4493166864f41442524a7933b59a83c3d32bb6793447fe9f16228a2560bf938e",
+    "GET http://127.0.0.1:8011/api/v1/flights/jobs/5/discrepancies?kind=attention&page=1&page_size=15",
+    "GET http://127.0.0.1:8011/api/v1/flights/jobs/5/discrepancies/fld_4493166864f41442524a7933b59a83c3d32bb6793447fe9f16228a2560bf938e",
+    "GET http://127.0.0.1:8011/api/v1/flights/jobs/5/discrepancies/fld_4493166864f41442524a7933b59a83c3d32bb6793447fe9f16228a2560bf938e/investigations",
+    "GET http://127.0.0.1:8011/api/v1/flights/jobs/5/discrepancies/fld_4493166864f41442524a7933b59a83c3d32bb6793447fe9f16228a2560bf938e/review",
+    "GET http://127.0.0.1:8011/api/v1/flights/jobs/5/discrepancies/fld_4493166864f41442524a7933b59a83c3d32bb6793447fe9f16228a2560bf938e/review/history?page=1&page_size=5",
+    "GET http://127.0.0.1:8011/api/v1/flights/jobs/5",
+    "GET http://127.0.0.1:8011/api/v1/flights/jobs/5",
+    "GET http://127.0.0.1:8011/api/v1/flights/jobs/5/discrepancies/fld_4493166864f41442524a7933b59a83c3d32bb6793447fe9f16228a2560bf938e",
+    "GET http://127.0.0.1:8011/api/v1/flights/jobs/5/discrepancies?kind=attention&page=1&page_size=15",
+    "GET http://127.0.0.1:8011/api/v1/flights/jobs/5/discrepancies/fld_4493166864f41442524a7933b59a83c3d32bb6793447fe9f16228a2560bf938e",
+    "GET http://127.0.0.1:8011/api/v1/flights/jobs/5/discrepancies/fld_4493166864f41442524a7933b59a83c3d32bb6793447fe9f16228a2560bf938e/investigations",
+    "GET http://127.0.0.1:8011/api/v1/flights/jobs/5/discrepancies/fld_4493166864f41442524a7933b59a83c3d32bb6793447fe9f16228a2560bf938e/review",
+    "GET http://127.0.0.1:8011/api/v1/flights/jobs/5/discrepancies/fld_4493166864f41442524a7933b59a83c3d32bb6793447fe9f16228a2560bf938e/review/history?page=1&page_size=5"
+  ],
+  "errors": [],
+  "desktop": {
+    "wheel": {
+      "before": {
+        "pageY": 552,
+        "bodyTop": 0,
+        "bodyClient": 801,
+        "bodyScroll": 1593,
+        "width": 1060,
+        "rootWidth": 1440,
+        "viewport": 1440
+      },
+      "after": {
+        "pageY": 552,
+        "bodyTop": 550,
+        "bodyClient": 801,
+        "bodyScroll": 1593,
+        "width": 1060,
+        "rootWidth": 1440,
+        "viewport": 1440
+      }
+    },
+    "pagination": "1–10 → 11–20 → 21–21 of 21",
+    "resize": {
+      "wide": 1236,
+      "narrow": 680,
+      "keyboard": "End 1280; ArrowRight 1248; Home 680"
+    },
+    "review": "Context, untouched close, dirty warning, Continue, Escape, Keep draft + evidence inspection + Resume, explicit Discard verified; no submission."
+  },
+  "mobile": [
+    {
+      "width": 390,
+      "initial": {
+        "pageY": 984,
+        "bodyTop": 0,
+        "bodyClient": 735,
+        "bodyScroll": 1897,
+        "width": 390,
+        "rootWidth": 390,
+        "viewport": 390
+      },
+      "scrolled": {
+        "pageY": 984,
+        "bodyTop": 618,
+        "bodyClient": 735,
+        "bodyScroll": 2088,
+        "width": 390,
+        "rootWidth": 390,
+        "viewport": 390
+      },
+      "review": "Full-screen, dirty-close Continue/Discard, Save reachable, no root overflow."
+    },
+    {
+      "width": 320,
+      "initial": {
+        "pageY": 1104,
+        "bodyTop": 0,
+        "bodyClient": 735,
+        "bodyScroll": 1945,
+        "width": 320,
+        "rootWidth": 320,
+        "viewport": 320
+      },
+      "scrolled": {
+        "pageY": 1104,
+        "bodyTop": 626,
+        "bodyClient": 735,
+        "bodyScroll": 2136,
+        "width": 320,
+        "rootWidth": 320,
+        "viewport": 320
+      },
+      "review": "Full-screen, dirty-close Continue/Discard, Save reachable, no root overflow."
+    }
+  ]
+}

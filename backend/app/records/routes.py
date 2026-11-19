@@ -26,6 +26,8 @@ router = APIRouter(prefix="/api/v1/jobs", tags=["records"])
 
 def require_records(job_id, session):
     job = get_job_or_404(job_id, session)
+    if job.job_kind != "transactions":
+        raise HTTPException(409, "Transaction exploration and corrections are unavailable for this job kind.")
     metadata = session.get(JobImport, job_id)
     if job.status != "completed" or not metadata or not metadata.records_available:
         raise HTTPException(

@@ -24,3 +24,11 @@ frontend/dist/
 frontend/playwright-report/
 frontend/test-results/
 backend/data/*.db
+
+# Flights benchmark bytes remain local-only, including accidental copies.
+**/dirty.csv
+**/clean.csv
+
+# Keep local download metadata and duplicate screenshot archives out of Git.
+*:Zone.Identifier
+/docs/ui-review/live-workflow.zip

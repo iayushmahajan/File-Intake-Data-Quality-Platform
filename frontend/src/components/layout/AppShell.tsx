@@ -1,10 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { preferredScrollBehavior } from "../../lib/utils";
 import { JobsPanel } from "../panels/JobsPanel";
 import { ResultsPanel } from "../panels/ResultsPanel";
 import { UploadPanel } from "../panels/UploadPanel";
 
-export function AppShell() {
-  const [jobId, setJobId] = useState<number | null>(() => {
+interface WorkspaceNavigation {
+  jobId: number | null;
+  selectJob: (id: number) => void;
+  onDraftChange: (dirty: boolean) => void;
+}
+
+export function AppShell({ navigation }: { navigation?: WorkspaceNavigation } = {}) {
+  const [localJobId, setJobId] = useState<number | null>(() => {
     const value = Number(
       new URLSearchParams(window.location.search).get("job"),
     );
@@ -12,10 +19,13 @@ export function AppShell() {
       ? value
       : null;
   });
+  const jobId = navigation ? navigation.jobId : localJobId;
+  const routeDraftChange = navigation?.onDraftChange;
   const unsavedDrafts = useRef(false);
   const onDraftChange = useCallback((hasDrafts: boolean) => {
     unsavedDrafts.current = hasDrafts;
-  }, []);
+    routeDraftChange?.(hasDrafts);
+  }, [routeDraftChange]);
   const [pendingJob, setPendingJob] = useState<number | null>(null);
   const navigationDialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -28,6 +38,10 @@ export function AppShell() {
   }, [pendingJob]);
   const selectJob = (id: number) => {
     if (id === jobId) return true;
+    if (navigation) {
+      navigation.selectJob(id);
+      return !unsavedDrafts.current;
+    }
     if (unsavedDrafts.current) {
       setPendingJob(id);
       return false;
@@ -46,24 +60,29 @@ export function AppShell() {
   return (
     <div
       id="dashboard"
-      className="mx-auto max-w-[1520px] px-4 py-6 sm:px-8 sm:py-8"
+      className="workspace-container"
     >
       <header className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b border-borderSoft pb-6">
         <div>
           <p className="eyebrow">DATA WORKSPACE</p>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
-            File Intake{" "}
-            <span className="text-textMuted">&amp; Data Quality Platform</span>
+            Legacy transaction workspace
           </h1>
           <p className="mt-2 text-sm text-textMuted">
             Import, review and refine your transaction data.
           </p>
         </div>
-        <a className="button-primary" href="#new-job">
+        <a className="button-primary" href="#new-job" onClick={(event) => {
+          event.preventDefault();
+          document.getElementById("new-job")?.scrollIntoView({
+            behavior: preferredScrollBehavior(),
+            block: "start",
+          });
+        }}>
           + New processing job
         </a>
       </header>
-      <main className="space-y-6">
+      <div className="space-y-6">
         <div className="grid items-start gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
           <div id="new-job">
             <UploadPanel
@@ -96,13 +115,13 @@ export function AppShell() {
             onSelect={(id) => {
               if (selectJob(id))
                 resultsRef.current?.scrollIntoView({
-                  behavior: "smooth",
+                  behavior: preferredScrollBehavior(),
                   block: "start",
                 });
             }}
           />
         </div>
-      </main>
+      </div>
       <dialog
         ref={navigationDialog}
         onCancel={() => setPendingJob(null)}
@@ -127,7 +146,7 @@ export function AppShell() {
               if (pendingJob === null) return;
               unsavedDrafts.current = false;
               selectJob(pendingJob);
-              resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+              resultsRef.current?.scrollIntoView({ behavior: preferredScrollBehavior(), block: "start" });
             }}
           >
             Discard

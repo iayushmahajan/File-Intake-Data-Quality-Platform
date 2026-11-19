@@ -1,0 +1,23 @@
+{
+  "id": "399e6a0d689448ecb9a6313441cbf965",
+  "request_id": "9cb764eff4414ec18467d5e2eb6b652a",
+  "job_id": 1,
+  "snapshot_digest": "sha256:ddcad7d954c2dca763e287912616dff76e80096e82480ac54081fe9297378676",
+  "input_sha256": "bafbefd3e1dbd35096517893345a1cf9c54f71194e46846229ed8fda2c536713",
+  "policy_version": "flight_reviewed_export_v1",
+  "artifacts": {
+    "reviewed": {
+      "sha256": "4042cd8c79b049e10668a9a3beae823ab3eb983f0bc4fb7f57a22bd5bbb61a75",
+      "bytes": 763
+    },
+    "exceptions": {
+      "sha256": "dd72e3737a6bc351f75b277972dbdb2fdcd50ebce2c3892ba4c9af854062f349",
+      "bytes": 2068
+    },
+    "provenance": {
+      "sha256": "fc077c86b9bcb93d1ab7d54ba921b72c8852e5ac86f7ff0cbecdbb0fe2ef19a3",
+      "bytes": 13478
+    }
+  },
+  "created_at": "2026-11-16T11:39:19.298697"
+}

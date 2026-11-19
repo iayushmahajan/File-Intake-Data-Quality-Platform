@@ -1,29 +1,21 @@
+const color = (name) => `rgb(var(--${name}) / <alpha-value>)`;
+
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
-  theme: {
-    extend: {
-      colors: {
-        background: "#f4f5f7",
-        surface: "#ffffff",
-        surfaceSoft: "#f3f1fc",
-        borderSoft: "#e1e4e8",
-        textMain: "#292d32",
-        textMuted: "#616873",
-        accent: "#5330e8",
-        accentSoft: "#4826cb",
-        success: "#28734a",
-        chartMint: "#a6dcb9",
-        chartTeal: "#7ebdcc",
-        chartPurple: "#8170cd",
-        warning: "#925b0c",
-        danger: "#b73545",
-      },
-      boxShadow: {
-        panel:
-          "0 1px 3px rgba(25, 32, 45, 0.07), 0 0 0 1px rgba(25, 32, 45, 0.02)",
-        glow: "0 0 0 3px rgba(83, 48, 232, 0.12)",
-      },
+  theme: { extend: {
+    colors: {
+      background: color("background"), foreground: color("foreground"),
+      surface: color("surface"), secondary: color("secondary"), border: color("border"),
+      primary: { DEFAULT: color("primary"), foreground: color("primary-foreground") },
+      brand: { DEFAULT: color("brand"), foreground: color("brand-foreground") },
+      muted: { DEFAULT: color("secondary"), foreground: color("muted") },
+      overlay: color("overlay"), success: color("success"), warning: color("warning"), danger: color("danger"),
+      // Compatibility aliases keep existing feature components readable and functional.
+      surfaceSoft: color("secondary"), borderSoft: color("border"), textMain: color("foreground"),
+      textMuted: color("muted"), accent: color("primary"), accentSoft: color("link"),
+      chartMint: color("chart-mint"), chartTeal: color("chart-teal"), chartPurple: color("chart-slate"),
     },
-  },
+    boxShadow: { panel: "0 2px 8px rgb(20 40 35 / 0.05)", glow: "0 0 0 3px rgb(20 40 35 / 0.16)" },
+  } },
   plugins: [],
 };

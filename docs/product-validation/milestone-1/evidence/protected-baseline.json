@@ -1,0 +1,57 @@
+{
+  "before": {
+    "database": "reconcile_workbench",
+    "database_user": "reconcile_workbench",
+    "revision": "0006",
+    "jobs": 5,
+    "job_fingerprint": "8ea0fc0887ea82c51c139cb65b752f7a",
+    "observations": 11880,
+    "observation_fingerprint": "070030e0d35ae58bb262b23b9c7464e1",
+    "ai": 0,
+    "reviews": 0,
+    "exports": 0
+  },
+  "after": {
+    "database": "reconcile_workbench",
+    "database_user": "reconcile_workbench",
+    "revision": "0006",
+    "jobs": 5,
+    "job_fingerprint": "8ea0fc0887ea82c51c139cb65b752f7a",
+    "observations": 11880,
+    "observation_fingerprint": "070030e0d35ae58bb262b23b9c7464e1",
+    "ai": 0,
+    "reviews": 0,
+    "exports": 0
+  },
+  "equal": true,
+  "job_list_sha256_before": "e610985443cae809a62b9787f9cf8d5f35d2a6de4a40f0be65a53a5a26957b9a",
+  "job_list_sha256_after": "e610985443cae809a62b9787f9cf8d5f35d2a6de4a40f0be65a53a5a26957b9a",
+  "services_before_and_after": [
+    {
+      "id": "bfb4306f23fee56ec44b021bbdf9942706a974e44c616b5a0eec04ff064a9ebe",
+      "name": "/reconcile-workbench-db-1",
+      "started_at": "2026-11-12T19:11:39.765849927Z"
+    },
+    {
+      "id": "b1f10f01e621dea3dcf227fb9dcb31e4b7bcf1df3b72fcaefe635b9cb72062c1",
+      "name": "/reconcile-workbench-redis-1",
+      "started_at": "2026-11-12T19:11:39.969512303Z"
+    },
+    {
+      "id": "7475d771548aa3a40dc84e356475119d5bbf7ba52f20bd13a0ade40dd93a9cf9",
+      "name": "/reconcile-workbench-api-1",
+      "started_at": "2026-11-13T11:22:12.836166904Z"
+    },
+    {
+      "id": "4f82a6a3f6adbd3e99281be564d4d8017e33e241d18ce607c7dc5afe492c0b2e",
+      "name": "/reconcile-workbench-worker-1",
+      "started_at": "2026-11-12T19:11:51.675979494Z"
+    },
+    {
+      "id": "e2f2c00dbef7d954bb81c9d621a3fa7ce7ffc2914f8c33e7941ab1aa6e0b2944",
+      "name": "/reconcile-workbench-dispatcher-1",
+      "started_at": "2026-11-12T19:11:51.488609836Z"
+    }
+  ],
+  "service_ids_start_times_mounts_networks_unchanged": true
+}

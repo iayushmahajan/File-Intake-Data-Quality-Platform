@@ -1,0 +1,5 @@
+{
+  "browserBack": "Cancel restores same review form, draft and focus",
+  "nextCase": "Protected while dirty; succeeds after explicit local discard",
+  "writes": []
+}
